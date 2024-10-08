@@ -8,7 +8,7 @@ export class Customer {
   @Column({
     name: 'name',
     type: 'varchar',
-    length: 50,
+    length: 250,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
@@ -16,12 +16,83 @@ export class Customer {
   name: string;
 
   @Column({
-    name: 'fullname',
+    name: 'phone',
     type: 'varchar',
     length: 50,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
   })
-  fullname: string;
+  phone: string;
+
+  @Column({
+    name: 'email',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    default: '',
+    collation: 'utf8_general_ci',
+  })
+  email: string;
+
+  @Column({
+    name: 'amount_bonus',
+    type: 'decimal',
+    precision: 12,
+    scale: 4,
+    nullable: true,
+    default: 0,
+    collation: 'utf8_general_ci',
+  })
+  amountBonus: string;
+
+  @Column({
+    name: 'amount_box',
+    type: 'decimal',
+    precision: 12,
+    scale: 4,
+    nullable: true,
+    default: 0,
+    collation: 'utf8_general_ci',
+  })
+  amountBox: string;
+
+  @Column({
+    name: 'bonus_percent',
+    type: 'decimal',
+    precision: 12,
+    scale: 4,
+    nullable: true,
+    default: 0,
+    collation: 'utf8_general_ci',
+  })
+  bonusPercent: string;
+
+  @Column({
+    name: 'pay_percent',
+    type: 'decimal',
+    precision: 12,
+    scale: 4,
+    nullable: true,
+    default: 0,
+    collation: 'utf8_general_ci',
+  })
+  payPercent: string;
+
+  @Column({
+    name: 'count_day',
+    type: 'int',
+    nullable: true,
+    default: 0,
+  })
+  countDay: number;
+
+  @Column({
+    name: 'date_change',
+    type: 'datetime',
+    nullable: true,
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  dateChange: Date;
 }
