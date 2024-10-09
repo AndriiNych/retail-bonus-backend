@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule as MySqlTypeOrmModule } from '@nestjs/typeorm';
 
+console.log(__dirname);
 @Module({
   imports: [
     MySqlTypeOrmModule.forRoot({
@@ -11,7 +12,7 @@ import { TypeOrmModule as MySqlTypeOrmModule } from '@nestjs/typeorm';
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
       connectTimeout: 30000,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      entities: ['dist/entities' + '/**/*.entity.js'],
       synchronize: true,
     }),
   ],
