@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { activationOnrenderServer } from './temp/activation.onrender';
 
 setInterval(() => {
   console.log(`datetime: ${new Date()}`);
+  activationOnrenderServer();
 }, 300000);
 
 async function bootstrap() {
