@@ -1,8 +1,7 @@
-export async function activationOnrenderServer() {
+//TODO modify function: clear console.log
+export async function activeOnrenderServer() {
   console.log('start activation');
-  const response = await fetch(
-    'https://retail-bonus-backend.onrender.com/customers',
-  );
+  const response = await fetch(process.env.ACTIVE_PATH);
   if (!response.ok) {
     console.log(`error ${response.status}`);
     console.log(`stop activation: ${new Date()}`);
