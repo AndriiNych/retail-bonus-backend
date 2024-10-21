@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Customer 1",
+    "phone": "03855523232",
+    "email": "email_1@gmail.com",
+    "amountBonus": 152.2,
+    "amountBox": 1.55,
+    "bonusPercent": 5,
+    "payPercent": 50,
+    "countDay": 15
+  },
+  {
+    "name": "Customer 2",
+    "phone": "0385551122",
+    "email": "email_2@gmail.com",
+    "amountBonus": 152.2,
+    "amountBox": 1.55,
+    "bonusPercent": 5,
+    "payPercent": 50,
+    "countDay": 15
+  },
+  {
+    "name": "Customer 3",
+    "phone": "0385551133",
+    "email": "email_3@gmail.com",
+    "amountBonus": 152.2,
+    "amountBox": 1.55,
+    "bonusPercent": 5,
+    "payPercent": 50,
+    "countDay": 15
+  },
+  {
+    "name": "Customer 4",
+    "phone": "0385551144",
+    "email": "email_4@gmail.com",
+    "amountBonus": 152.2,
+    "amountBox": 1.55,
+    "bonusPercent": 5,
+    "payPercent": 50,
+    "countDay": 15
+  },
+  {
+    "name": "Customer 5",
+    "phone": "03855511555",
+    "email": "email_5@gmail.com",
+    "amountBonus": 152.2,
+    "amountBox": 1.55,
+    "bonusPercent": 5,
+    "payPercent": 50,
+    "countDay": 15
+  }
+]

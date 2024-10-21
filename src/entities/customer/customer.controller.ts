@@ -1,6 +1,8 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
+// import { CreateCustomerDto } from './dto/customer.dto';
+import { CustomersDto } from './dto/customers.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -11,5 +13,10 @@ export class CustomerController {
   async getAllCustomers() {
     const customers = await this.customerService.getAllCustomers();
     return { status: 'ok', data: customers };
+  }
+
+  @Post('/')
+  async createCustomers(@Body() customers: CustomersDto) {
+    return await this.customerService.createCustomers(customers);
   }
 }

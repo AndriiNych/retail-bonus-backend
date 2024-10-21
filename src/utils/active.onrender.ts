@@ -9,9 +9,6 @@ async function activeOnrenderServer() {
 }
 
 export function startActivateOnrenderServer() {
-  console.log(
-    `${process.env.IS_ONRENDER_ACTIVE} & ${Boolean(process.env.IS_ONRENDER_ACTIVE)}`,
-  );
   if (getBooleanValueFromEnv(process.env.IS_ONRENDER_ACTIVE)) {
     setInterval(() => {
       activeOnrenderServer();
