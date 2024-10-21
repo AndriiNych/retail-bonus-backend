@@ -1,13 +1,20 @@
-//TODO modify function: clear console.log
-export async function activeOnrenderServer() {
-  console.log('start activation');
+import { getBooleanValueFromEnv } from './env.boolean';
+
+async function activeOnrenderServer() {
+  console.log(`datetime: ${new Date()}`);
   const response = await fetch(process.env.ACTIVE_PATH);
   if (!response.ok) {
-    console.log(`error ${response.status}`);
-    console.log(`stop activation: ${new Date()}`);
-  } else {
-    const date = await response.json();
-    console.log(date);
-    console.log(`stop activation: ${new Date()}`);
+    console.log(`${new Date()}: Err: ${response.status}`);
+  }
+}
+
+export function startActivateOnrenderServer() {
+  console.log(
+    `${process.env.IS_ONRENDER_ACTIVE} & ${Boolean(process.env.IS_ONRENDER_ACTIVE)}`,
+  );
+  if (getBooleanValueFromEnv(process.env.IS_ONRENDER_ACTIVE)) {
+    setInterval(() => {
+      activeOnrenderServer();
+    }, Number(process.env.ACTIVE_DELAY));
   }
 }

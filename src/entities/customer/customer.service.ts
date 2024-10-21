@@ -12,7 +12,6 @@ export class CustomerService {
   ) {}
 
   public async getAllCustomers() {
-    console.log('request getAllCustomers');
     return await this.customerRepository.find();
   }
 }
