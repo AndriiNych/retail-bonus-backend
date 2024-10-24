@@ -1,9 +1,10 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
+import { StoreUpdateDto } from './dto/store.update.dto';
 
 @Injectable()
 export class StoreService {
@@ -12,24 +13,38 @@ export class StoreService {
     private readonly storeRepository: Repository<Store>,
   ) {}
 
-  public async getAllStores() {
+  public async getAllStores(): Promise<Store[]> {
     return await this.storeRepository.find();
   }
 
-  public async getStoreByUuid(uuid: string) {
+  public async getStoreByUuid(uuid: string): Promise<Store> {
     return await this.fetchStoreByUuid(uuid);
   }
 
   public async createStore(storeDto: StoreDto): Promise<Store> {
-    const storeInBase = await this.fetchStoreByUuid(storeDto.uuid);
-    if (storeInBase) {
-      throw new ConflictException(
-        `Record with UUID ${storeDto} aready exists.`,
-      );
-    }
+    await this.validateExistenceByUuid(storeDto.uuid);
 
     const newStore = this.storeRepository.create(storeDto);
     return await this.storeRepository.save(newStore);
+  }
+
+  public async updateStoreByUuid(
+    uuid: string,
+    storeDto: StoreUpdateDto,
+  ): Promise<UpdateResult> {
+    if (storeDto.hasOwnProperty('uuid')) {
+      await this.validateExistenceByUuid(storeDto.uuid);
+    }
+
+    return await this.storeRepository.update({ uuid }, storeDto);
+  }
+
+  private async validateExistenceByUuid(uuid: string): Promise<void> {
+    const store = await this.fetchStoreByUuid(uuid);
+    if (store) {
+      //TODO Add text error to messages in get.message.ts
+      throw new ConflictException(`Record with UUID ${uuid} already exists.`);
+    }
   }
 
   private async fetchStoreByUuid(uuid: string) {

@@ -1,7 +1,16 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 
 import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
+import { StoreUpdateDto } from './dto/store.update.dto';
 
 @Controller('stores')
 export class StoreController {
@@ -24,5 +33,13 @@ export class StoreController {
   @Post('/')
   async createStore(@Body() store: StoreDto) {
     return await this.storeService.createStore(store);
+  }
+
+  @Put('/:uuid')
+  async updateStore(
+    @Param('uuid') uuid: string,
+    @Body() store: StoreUpdateDto,
+  ) {
+    return await this.storeService.updateStoreByUuid(uuid, store);
   }
 }

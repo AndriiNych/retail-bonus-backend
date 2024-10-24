@@ -1,3 +1,5 @@
+//TODO add error codes and change the function of creating error text
+
 export const MSG = {
   ERR: {
     VALIDATION: {
