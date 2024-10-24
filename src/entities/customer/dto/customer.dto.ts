@@ -10,6 +10,8 @@ import {
 
 import { MSG } from '@src/utils/get.message';
 
+//TODO add ShopID to Dto
+
 export class CustomerDto {
   @IsString()
   @IsNotEmpty()

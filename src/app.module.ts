@@ -5,8 +5,15 @@ import { TypeOrmModule } from './db/typeorm.module';
 
 import { ActiveModule } from './entities/active/active.module';
 import { CustomerModule } from './entities/customer/customer.module';
+import { StoreModule } from './entities/stores/store.module';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule, ActiveModule, CustomerModule],
+  imports: [
+    ConfigModule,
+    TypeOrmModule,
+    ActiveModule,
+    CustomerModule,
+    StoreModule,
+  ],
 })
 export class AppModule {}
