@@ -56,7 +56,7 @@ export class Customer {
     collation: 'utf8_general_ci',
   })
   amountBox: string;
-
+  //TODO set the default value for bonuses using a constant
   @Column({
     name: 'bonus_percent',
     type: 'decimal',
@@ -87,6 +87,7 @@ export class Customer {
   })
   countDay: number;
 
+  //TODO change name to updated_at
   @Column({
     name: 'date_change',
     type: 'datetime',
