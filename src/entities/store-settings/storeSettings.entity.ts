@@ -39,8 +39,8 @@ export class StoreSettings {
     default: BONUS.start,
     collation: 'utf8_general_ci',
   })
-  StartBonus: string;
-
+  startBonus: string;
+  //TODO change the validation for values to include 100% as in storeSettings
   @Column({
     name: 'current_bonus',
     type: 'decimal',
