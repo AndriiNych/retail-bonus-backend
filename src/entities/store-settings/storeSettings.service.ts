@@ -24,11 +24,52 @@ export class StoreSettingsService {
     if (!store) {
       throw new NotFoundException(`Store with UUID ${uuid} not found.`);
     }
-    console.log('1');
+
     const newStoreSettings =
       this.storeSettingsRepository.create(storeSettingsDto);
     newStoreSettings.storeId = store.id;
     console.log(newStoreSettings);
     return await this.storeSettingsRepository.save(newStoreSettings);
+  }
+
+  //store_uuid, start_date, end_date, date & operator=[lt, gt]
+  public async getStoreSettingsByCriterial(
+    queryParams: Record<string, string>,
+  ): Promise<StoreSettings[]> {
+    //TODO insert validate on error uuid and undefined
+    const { uuid, start_date, end_date, date, operator } = queryParams;
+    const { id: storeId } = await this.storeRepository.findOneBy({ uuid });
+
+    console.log(queryParams);
+    //TODO move "magic words"
+    const query =
+      this.storeSettingsRepository.createQueryBuilder('store_settings');
+
+    if (storeId) {
+      query.andWhere('store_settings.store_id = :storeId', { storeId });
+    }
+    if (start_date) {
+      query.andWhere('store_settings.start_date >= :start_date', {
+        start_date,
+      });
+      query.andWhere('store_settings.start_date <= :end_date', { end_date });
+    }
+    if (date) {
+      if (!operator) {
+        //   query.andWhere('store_settings.start_date >= :start_date', {
+        //     start_date,
+        //   });
+        //   query.andWhere('store_settings.start_date <= :end_date', { end_date });
+        // }
+        query.andWhere('store_settings.start_date  = :date', { date });
+      } else {
+        query.andWhere(
+          `store_settings.start_date ${operator === 'lt' ? '<=' : '>='} :date`,
+          { date },
+        );
+      }
+    }
+
+    return await query.getMany();
   }
 }

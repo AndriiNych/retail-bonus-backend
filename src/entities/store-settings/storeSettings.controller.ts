@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 
 import { StoreSettingsService } from './storeSettings.service';
@@ -16,9 +17,12 @@ import { StoreSettingsDto } from './dto/storeSettings.dto';
 export class StoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}
 
+  //TODO create dto validation
   @Get('/')
   @HttpCode(200)
-  async getStoreSettings() {}
+  async getStoreSettingsByCriterial(@Query() query: Record<string, string>) {
+    return await this.storeSettingsService.getStoreSettingsByCriterial(query);
+  }
 
   @Post('/')
   async createStoreSettings(@Body() storeSettings: StoreSettingsDto) {
