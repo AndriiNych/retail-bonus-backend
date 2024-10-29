@@ -18,29 +18,34 @@ export class StoreSettingsService {
   public async createStoreSettings(
     storeSettingsDto: StoreSettingsDto,
   ): Promise<StoreSettings> {
-    const { uuid } = storeSettingsDto;
-    const store = await this.storeRepository.findOneBy({ uuid });
-
-    if (!store) {
-      throw new NotFoundException(`Store with UUID ${uuid} not found.`);
-    }
+    const storeId = await this.getStoreIdByUuid(storeSettingsDto.uuid);
 
     const newStoreSettings =
       this.storeSettingsRepository.create(storeSettingsDto);
-    newStoreSettings.storeId = store.id;
-    console.log(newStoreSettings);
+    newStoreSettings.storeId = storeId;
+
     return await this.storeSettingsRepository.save(newStoreSettings);
   }
 
-  //store_uuid, start_date, end_date, date & operator=[lt, gt]
+  //store_uuid, start_date, end_date
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
   ): Promise<StoreSettings[]> {
-    //TODO insert validate on error uuid and undefined
-    const { uuid, start_date, end_date, date, operator } = queryParams;
-    const { id: storeId } = await this.storeRepository.findOneBy({ uuid });
+    const { uuid, ...criterial } = queryParams;
 
-    console.log(queryParams);
+    if (uuid) {
+      const storeId = await this.getStoreIdByUuid(uuid);
+      criterial.storeId = String(storeId);
+    }
+
+    const query = this.getQueryByCriterial(criterial);
+
+    return await query.getMany();
+  }
+
+  private getQueryByCriterial(criterial) {
+    const { storeId, start_date, end_date } = criterial;
+
     //TODO move "magic words"
     const query =
       this.storeSettingsRepository.createQueryBuilder('store_settings');
@@ -48,28 +53,27 @@ export class StoreSettingsService {
     if (storeId) {
       query.andWhere('store_settings.store_id = :storeId', { storeId });
     }
+
     if (start_date) {
       query.andWhere('store_settings.start_date >= :start_date', {
         start_date,
       });
-      query.andWhere('store_settings.start_date <= :end_date', { end_date });
-    }
-    if (date) {
-      if (!operator) {
-        //   query.andWhere('store_settings.start_date >= :start_date', {
-        //     start_date,
-        //   });
-        //   query.andWhere('store_settings.start_date <= :end_date', { end_date });
-        // }
-        query.andWhere('store_settings.start_date  = :date', { date });
-      } else {
-        query.andWhere(
-          `store_settings.start_date ${operator === 'lt' ? '<=' : '>='} :date`,
-          { date },
-        );
-      }
     }
 
-    return await query.getMany();
+    if (end_date) {
+      query.andWhere('store_settings.start_date <= :end_date', { end_date });
+    }
+
+    return query;
+  }
+
+  private async getStoreIdByUuid(uuid: string) {
+    const store = await this.storeRepository.findOneBy({ uuid });
+
+    if (!store) {
+      throw new NotFoundException(`Store with UUID ${uuid} not found.`);
+    }
+
+    return store.id;
   }
 }
