@@ -4,7 +4,7 @@ import { Repository, UpdateResult } from 'typeorm';
 
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
-import { StoreUpdateDto } from './dto/store.update.dto';
+import { StoreUpdateDto } from './dto/store-update.dto';
 
 @Injectable()
 export class StoreService {
@@ -32,8 +32,9 @@ export class StoreService {
     uuid: string,
     storeDto: StoreUpdateDto,
   ): Promise<UpdateResult> {
+    //TODO check this method
     if (storeDto.hasOwnProperty('uuid')) {
-      await this.validateExistenceByUuid(storeDto.uuid);
+      await this.validateExistenceByUuid(uuid);
     }
 
     return await this.storeRepository.update({ uuid }, storeDto);

@@ -10,7 +10,7 @@ import {
 
 import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
-import { StoreUpdateDto } from './dto/store.update.dto';
+import { StoreUpdateDto } from './dto/store-update.dto';
 
 @Controller('stores')
 export class StoreController {

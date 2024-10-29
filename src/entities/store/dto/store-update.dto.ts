@@ -10,12 +10,7 @@ export class StoreUpdateDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(36)
-  uuid?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsBoolean()

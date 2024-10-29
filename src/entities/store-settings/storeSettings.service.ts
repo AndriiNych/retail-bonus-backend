@@ -27,6 +27,14 @@ export class StoreSettingsService {
     return await this.storeSettingsRepository.save(newStoreSettings);
   }
 
+  public async getStoreSettingsById(id: number): Promise<StoreSettings> {
+    const result = await this.storeSettingsRepository.findOneBy({ id });
+    if (!result) {
+      throw new NotFoundException(`StoreSettings with Id: ${id} not found.`);
+    }
+    return result;
+  }
+
   //store_uuid, start_date, end_date
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
@@ -77,7 +85,7 @@ export class StoreSettingsService {
     const store = await this.storeRepository.findOneBy({ uuid });
 
     if (!store) {
-      throw new NotFoundException(`Store with UUID ${uuid} not found.`);
+      throw new NotFoundException(`Store with UUID: ${uuid} not found.`);
     }
 
     return store.id;
