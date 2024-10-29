@@ -31,6 +31,7 @@ export class StoreSettingsService {
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
   ): Promise<StoreSettings[]> {
+    //TODO create validate from Dto
     const { uuid, ...criterial } = queryParams;
 
     if (uuid) {
@@ -43,7 +44,12 @@ export class StoreSettingsService {
     return await query.getMany();
   }
 
-  private getQueryByCriterial(criterial) {
+  public async deleteStoreSettingsById(id: number) {
+    console.log(id);
+    return await this.storeSettingsRepository.delete({ id });
+  }
+
+  private getQueryByCriterial(criterial: Record<string, string>) {
     const { storeId, start_date, end_date } = criterial;
 
     //TODO move "magic words"
