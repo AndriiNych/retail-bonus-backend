@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 
 import { StoreSettings } from './storeSettings.entity';
 import { StoreSettingsDto } from './dto/storeSettings.dto';
 import { Store } from '../store/store.entity';
+import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
 
 @Injectable()
 export class StoreSettingsService {
@@ -18,13 +19,9 @@ export class StoreSettingsService {
   public async createStoreSettings(
     storeSettingsDto: StoreSettingsDto,
   ): Promise<StoreSettings> {
-    const storeId = await this.getStoreIdByUuid(storeSettingsDto.uuid);
+    const store = await this.getStoreSettings(storeSettingsDto);
 
-    const newStoreSettings =
-      this.storeSettingsRepository.create(storeSettingsDto);
-    newStoreSettings.storeId = storeId;
-
-    return await this.storeSettingsRepository.save(newStoreSettings);
+    return await this.storeSettingsRepository.save(store);
   }
 
   public async getStoreSettingsById(id: number): Promise<StoreSettings> {
@@ -35,16 +32,14 @@ export class StoreSettingsService {
     return result;
   }
 
-  //store_uuid, start_date, end_date
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
   ): Promise<StoreSettings[]> {
-    //TODO create validate from Dto
     const { uuid, ...criterial } = queryParams;
 
     if (uuid) {
       const storeId = await this.getStoreIdByUuid(uuid);
-      criterial.storeId = String(storeId);
+      criterial.store_id = String(storeId);
     }
 
     const query = this.getQueryByCriterial(criterial);
@@ -53,19 +48,39 @@ export class StoreSettingsService {
   }
 
   public async deleteStoreSettingsById(id: number) {
-    console.log(id);
     return await this.storeSettingsRepository.delete({ id });
   }
 
+  public async updateStoreSettingsById(
+    id: number,
+    storeSettingsUpdateDto: StoreSettingsUpdateDto,
+  ): Promise<UpdateResult> {
+    const store = await this.getStoreSettings(storeSettingsUpdateDto);
+
+    return await this.storeSettingsRepository.update({ id }, store);
+  }
+
+  private async getStoreSettings(storeSettingsDto: StoreSettingsUpdateDto) {
+    const storeId = await this.getStoreIdByUuid(storeSettingsDto.uuid);
+
+    const store = this.storeSettingsRepository.create(storeSettingsDto);
+
+    if (storeId) {
+      store.storeId = storeId;
+    }
+
+    return store;
+  }
+
   private getQueryByCriterial(criterial: Record<string, string>) {
-    const { storeId, start_date, end_date } = criterial;
+    const { store_id, start_date, end_date } = criterial;
 
     //TODO move "magic words"
     const query =
       this.storeSettingsRepository.createQueryBuilder('store_settings');
 
-    if (storeId) {
-      query.andWhere('store_settings.store_id = :storeId', { storeId });
+    if (store_id) {
+      query.andWhere('store_settings.store_id = :store_id', { store_id });
     }
 
     if (start_date) {

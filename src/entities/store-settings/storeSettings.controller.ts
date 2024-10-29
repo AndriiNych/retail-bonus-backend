@@ -13,12 +13,14 @@ import {
 import { StoreSettingsService } from './storeSettings.service';
 import { StoreSettingsDto } from './dto/storeSettings.dto';
 import { StoreSettingsParamsDto } from './dto/storeSettings-params.dto';
+import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
 
 @Controller('store-settings')
 export class StoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}
 
-  //TODO create dto validation for Query
+  //TODO create validate queryParams from Dto in controller
+  //uuid, start_date, end_date
   @Get('/')
   @HttpCode(200)
   async getStoreSettingsByCriterial(@Query() query: Record<string, string>) {
@@ -44,8 +46,11 @@ export class StoreSettingsController {
   @Put('/:id')
   async updateStoreSettings(
     @Param() params: StoreSettingsParamsDto,
-    @Body() storeSettings: StoreSettingsDto,
+    @Body() storeSettings: StoreSettingsUpdateDto,
   ) {
-    console.log('end');
+    return await this.storeSettingsService.updateStoreSettingsById(
+      params.id,
+      storeSettings,
+    );
   }
 }
