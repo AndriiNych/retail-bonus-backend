@@ -7,6 +7,10 @@ import { StoreSettingsDto } from './dto/storeSettings.dto';
 import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
 
+const TABLE_NAME = 'store)settings';
+const COLUMN_STORE_ID = 'store_id';
+const COLUMN_START_DATE = 'start_date';
+const COLUMN_END_DATE = 'end_date';
 @Injectable()
 export class StoreSettingsService {
   constructor(
@@ -75,22 +79,27 @@ export class StoreSettingsService {
   private getQueryByCriterial(criterial: Record<string, string>) {
     const { store_id, start_date, end_date } = criterial;
 
-    //TODO move "magic words"
-    const query =
-      this.storeSettingsRepository.createQueryBuilder('store_settings');
+    const query = this.storeSettingsRepository.createQueryBuilder(TABLE_NAME);
 
     if (store_id) {
-      query.andWhere('store_settings.store_id = :store_id', { store_id });
-    }
-
-    if (start_date) {
-      query.andWhere('store_settings.start_date >= :start_date', {
-        start_date,
+      query.andWhere(`${TABLE_NAME}.${COLUMN_STORE_ID} = :${COLUMN_STORE_ID}`, {
+        store_id,
       });
     }
 
+    if (start_date) {
+      query.andWhere(
+        `${TABLE_NAME}.${COLUMN_START_DATE} = :${COLUMN_START_DATE}`,
+        {
+          start_date,
+        },
+      );
+    }
+
     if (end_date) {
-      query.andWhere('store_settings.start_date <= :end_date', { end_date });
+      query.andWhere(`${TABLE_NAME}.${COLUMN_END_DATE} = :${COLUMN_END_DATE}`, {
+        end_date,
+      });
     }
 
     return query;

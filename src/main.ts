@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 import { startActivateOnrenderServer } from './utils/active.onrender';
+import { ConfigService } from '@nestjs/config';
+import { ApiKeyAuthGuard } from './auth/apiKeyGuard';
 
 startActivateOnrenderServer();
 
@@ -20,6 +22,8 @@ async function bootstrap() {
       // stopAtFirstError: true,
     }),
   );
+
+  app.useGlobalGuards(new ApiKeyAuthGuard(app.get(ConfigService)));
 
   await app.listen(process.env.PORT);
 }
