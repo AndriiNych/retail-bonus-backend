@@ -6,7 +6,7 @@ import { startActivateOnrenderServer } from './utils/active.onrender';
 import { ConfigService } from '@nestjs/config';
 import { ApiKeyAuthGuard } from './auth/apiKeyGuard';
 
-startActivateOnrenderServer();
+// startActivateOnrenderServer();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
