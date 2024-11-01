@@ -9,6 +9,7 @@ import { CustomerDto } from './dto/customer.dto';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
+  //TODO check all API “responses” and bring them to the same standard
   @Get('/')
   @HttpCode(200)
   async getAllCustomers() {

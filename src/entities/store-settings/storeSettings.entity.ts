@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-  Index,
-} from 'typeorm';
-import { Store } from '../store/store.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { BONUS } from '@src/utils/bonus';
 
 @Entity('store_settings')
@@ -16,11 +8,14 @@ export class StoreSettings {
 
   @Index()
   @Column({
-    name: 'store_id',
-    type: 'int',
-    nullable: false,
+    name: 'store_uuid',
+    type: 'varchar',
+    length: 40,
+    nullable: true,
+    default: '',
+    collation: 'utf8_general_ci',
   })
-  storeId: number;
+  storeUuid: string;
 
   @Column({
     name: 'start_date',
@@ -40,7 +35,7 @@ export class StoreSettings {
     collation: 'utf8_general_ci',
   })
   startBonus: string;
-  //TODO change the validation for values to include 100% as in storeSettings
+
   @Column({
     name: 'current_bonus',
     type: 'decimal',
@@ -62,8 +57,4 @@ export class StoreSettings {
     collation: 'utf8_general_ci',
   })
   bonusPayment: string;
-
-  @ManyToOne(() => Store, store => store.id)
-  @JoinColumn({ name: 'store_id' })
-  store: Store;
 }

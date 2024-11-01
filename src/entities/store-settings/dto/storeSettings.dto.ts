@@ -13,7 +13,7 @@ export class StoreSettingsDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(36)
-  uuid: string;
+  store_uuid: string;
 
   @IsNotEmpty()
   @Type(() => Date)

@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
-@Entity('stores')
-export class Store {
+@Entity('worker')
+export class StoreSettings {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -16,20 +16,24 @@ export class Store {
   })
   uuid: string;
 
+  @Index()
+  @Column({
+    name: 'store_uuid',
+    type: 'varchar',
+    length: 40,
+    nullable: true,
+    default: '',
+    collation: 'utf8_general_ci',
+  })
+  storeUuid: number;
+
   @Column({
     name: 'name',
     type: 'varchar',
-    length: 100,
+    length: 250,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
   })
   name: string;
-
-  @Column({
-    name: 'is_deleted',
-    type: 'boolean',
-    default: false,
-  })
-  isDeleted: boolean;
 }

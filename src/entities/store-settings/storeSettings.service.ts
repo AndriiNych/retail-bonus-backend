@@ -8,7 +8,7 @@ import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
 
 const TABLE_NAME = 'store)settings';
-const COLUMN_STORE_ID = 'store_id';
+const COLUMN_STORE_UUID = 'store_uuid';
 const COLUMN_START_DATE = 'start_date';
 const COLUMN_END_DATE = 'end_date';
 @Injectable()
@@ -39,14 +39,14 @@ export class StoreSettingsService {
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
   ): Promise<StoreSettings[]> {
-    const { uuid, ...criterial } = queryParams;
+    // const { uuid, ...criterial } = queryParams;
 
-    if (uuid) {
-      const storeId = await this.getStoreIdByUuid(uuid);
-      criterial.store_id = String(storeId);
-    }
+    // if (uuid) {
+    //   const storeId = await this.getStoreIdByUuid(uuid);
+    //   criterial.store_id = String(storeId);
+    // }
 
-    const query = this.getQueryByCriterial(criterial);
+    const query = this.getQueryByCriterial(queryParams);
 
     return await query.getMany();
   }
@@ -65,26 +65,25 @@ export class StoreSettingsService {
   }
 
   private async getStoreSettings(storeSettingsDto: StoreSettingsUpdateDto) {
-    const storeId = await this.getStoreIdByUuid(storeSettingsDto.uuid);
+    this.getStoreIdByUuid(storeSettingsDto.store_uuid);
 
-    const store = this.storeSettingsRepository.create(storeSettingsDto);
+    const storeSettings = this.storeSettingsRepository.create(storeSettingsDto);
 
-    if (storeId) {
-      store.storeId = storeId;
-    }
-
-    return store;
+    return storeSettings;
   }
 
   private getQueryByCriterial(criterial: Record<string, string>) {
-    const { store_id, start_date, end_date } = criterial;
+    const { store_uuid, start_date, end_date } = criterial;
 
     const query = this.storeSettingsRepository.createQueryBuilder(TABLE_NAME);
 
-    if (store_id) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_STORE_ID} = :${COLUMN_STORE_ID}`, {
-        store_id,
-      });
+    if (store_uuid) {
+      query.andWhere(
+        `${TABLE_NAME}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
+        {
+          store_uuid,
+        },
+      );
     }
 
     if (start_date) {
