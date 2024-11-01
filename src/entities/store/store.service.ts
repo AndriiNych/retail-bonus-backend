@@ -1,10 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
+import { ResponseWrapperDto } from '../dto/response-wrapper.dto';
+import { StoreResponseDto } from './dto/store-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class StoreService {
@@ -13,31 +20,60 @@ export class StoreService {
     private readonly storeRepository: Repository<Store>,
   ) {}
 
-  public async getAllStores(): Promise<Store[]> {
-    return await this.storeRepository.find();
+  public async getAllStores(): Promise<ResponseWrapperDto<StoreResponseDto>> {
+    const result = await this.storeRepository.find();
+
+    return this.getFormattedResults(result);
   }
 
-  public async getStoreByUuid(uuid: string): Promise<Store> {
-    return await this.fetchStoreByUuid(uuid);
+  public async getStoreByUuid(
+    uuid: string,
+  ): Promise<ResponseWrapperDto<StoreResponseDto>> {
+    const resultFind = await this.fetchStoreByUuid(uuid);
+
+    const result = resultFind ? [resultFind] : [];
+
+    return this.getFormattedResults(result);
   }
 
-  public async createStore(storeDto: StoreDto): Promise<Store> {
+  public async createStore(
+    storeDto: StoreDto,
+  ): Promise<ResponseWrapperDto<StoreResponseDto>> {
     await this.validateExistenceByUuid(storeDto.uuid);
 
     const newStore = this.storeRepository.create(storeDto);
-    return await this.storeRepository.save(newStore);
+
+    const resultSave = await this.storeRepository.save(newStore);
+
+    const result = resultSave ? [resultSave] : [];
+
+    return this.getFormattedResults(result);
   }
 
   public async updateStoreByUuid(
     uuid: string,
-    storeDto: StoreUpdateDto,
-  ): Promise<UpdateResult> {
-    //TODO check this method
-    if (storeDto.hasOwnProperty('uuid')) {
-      await this.validateExistenceByUuid(uuid);
+    storeUpdateDto: StoreUpdateDto,
+  ): Promise<ResponseWrapperDto<StoreResponseDto>> {
+    const resultUpdate = await this.storeRepository.update(
+      { uuid },
+      storeUpdateDto,
+    );
+
+    const result = [];
+
+    if (resultUpdate.affected === 1) {
+      result.push(await this.fetchStoreByUuid(uuid));
     }
 
-    return await this.storeRepository.update({ uuid }, storeDto);
+    return this.getFormattedResults(result);
+  }
+
+  private getFormattedResults(
+    data: StoreResponseDto[],
+  ): ResponseWrapperDto<StoreResponseDto> {
+    const storeResponseDtos = plainToInstance(StoreResponseDto, data);
+
+    return new ResponseWrapperDto(storeResponseDtos);
   }
 
   private async validateExistenceByUuid(uuid: string): Promise<void> {
@@ -48,7 +84,7 @@ export class StoreService {
     }
   }
 
-  private async fetchStoreByUuid(uuid: string) {
+  public async fetchStoreByUuid(uuid: string) {
     return await this.storeRepository.findOneBy({ uuid });
   }
 }

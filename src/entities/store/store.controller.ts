@@ -1,46 +1,35 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 
 import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
+import { getResultObjectWithData } from '@src/utils/getResultObjectWithData';
 
 @Controller('stores')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
   @Get('/')
-  @HttpCode(200)
   async getAllStores() {
-    const stores = await this.storeService.getAllStores();
-    return { status: 'ok', data: stores };
+    return await this.storeService.getAllStores();
   }
 
   @Get('/:uuid')
   //TODO check whether the use is necessary @HttpCode(200) and clear that
-  @HttpCode(200)
   async getStoreByUuid(@Param('uuid') uuid: string) {
-    const store = await this.storeService.getStoreByUuid(uuid);
-    return { status: 'ok', data: store };
+    return await this.storeService.getStoreByUuid(uuid);
   }
 
   @Post('/')
-  async createStore(@Body() store: StoreDto) {
-    return await this.storeService.createStore(store);
+  async createStore(@Body() storeDto: StoreDto) {
+    return await this.storeService.createStore(storeDto);
   }
 
   @Put('/:uuid')
   async updateStore(
     @Param('uuid') uuid: string,
-    @Body() store: StoreUpdateDto,
+    @Body() storeUpdateDto: StoreUpdateDto,
   ) {
-    return await this.storeService.updateStoreByUuid(uuid, store);
+    return await this.storeService.updateStoreByUuid(uuid, storeUpdateDto);
   }
 }

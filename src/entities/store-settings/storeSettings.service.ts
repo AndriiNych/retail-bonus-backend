@@ -39,13 +39,6 @@ export class StoreSettingsService {
   public async getStoreSettingsByCriterial(
     queryParams: Record<string, string>,
   ): Promise<StoreSettings[]> {
-    // const { uuid, ...criterial } = queryParams;
-
-    // if (uuid) {
-    //   const storeId = await this.getStoreIdByUuid(uuid);
-    //   criterial.store_id = String(storeId);
-    // }
-
     const query = this.getQueryByCriterial(queryParams);
 
     return await query.getMany();
