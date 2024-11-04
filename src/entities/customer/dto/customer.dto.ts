@@ -6,15 +6,21 @@ import {
   Min,
   IsOptional,
   Matches,
+  IsObject,
+  Validate,
 } from 'class-validator';
 
 import { MSG } from '@src/utils/get.message';
-
-//TODO add ShopID to Dto
+import { Type } from 'class-transformer';
+import {
+  IsValidObject,
+  IsValidObjectConstraint,
+} from '@src/utils/dto/isValidObject.dto';
 
 export class CustomerDto {
   @IsString()
   @IsNotEmpty()
+  @Validate(IsValidObjectConstraint)
   name: string;
 
   @Matches(/^\d+$/, {
@@ -62,3 +68,11 @@ export class CustomerDto {
   @IsOptional()
   countDay?: number;
 }
+
+//TODO add ShopID to Dto
+// export class CustomerDto {
+//   @IsObject()
+//   @ValidateNested()
+//   @Type(() => CustomerSingleDto)
+//   customer: CustomerSingleDto;
+// }

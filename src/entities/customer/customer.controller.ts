@@ -17,13 +17,17 @@ export class CustomerController {
     return { status: 'ok', data: customers };
   }
 
+  //TODO check the uniqueness of the phone number
   @Post('single')
   async createCustomer(@Body() customer: CustomerDto) {
-    return await this.customerService.createCustomer(customer);
+    console.log(customer);
+    return customer;
+    // return await this.customerService.createCustomer(customer);
   }
 
   @Post('multiple')
   async createCustomers(@Body() customers: CustomersDto) {
-    return await this.customerService.createCustomers(customers);
+    return customers;
+    //await this.customerService.createCustomers(customers);
   }
 }

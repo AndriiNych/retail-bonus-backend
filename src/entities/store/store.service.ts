@@ -84,7 +84,7 @@ export class StoreService {
     }
   }
 
-  public async fetchStoreByUuid(uuid: string) {
+  private async fetchStoreByUuid(uuid: string) {
     return await this.storeRepository.findOneBy({ uuid });
   }
 }

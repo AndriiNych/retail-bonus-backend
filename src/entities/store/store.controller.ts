@@ -15,7 +15,6 @@ export class StoreController {
   }
 
   @Get('/:uuid')
-  //TODO check whether the use is necessary @HttpCode(200) and clear that
   async getStoreByUuid(@Param('uuid') uuid: string) {
     return await this.storeService.getStoreByUuid(uuid);
   }

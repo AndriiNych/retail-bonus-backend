@@ -6,6 +6,9 @@ import { StoreSettings } from './storeSettings.entity';
 import { StoreSettingsDto } from './dto/storeSettings.dto';
 import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
+import { ResponseWrapperDto } from '../dto/response-wrapper.dto';
+import { StoreSettingsResponseDto } from './dto/storeSettings-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 const TABLE_NAME = 'store)settings';
 const COLUMN_STORE_UUID = 'store_uuid';
@@ -22,10 +25,14 @@ export class StoreSettingsService {
 
   public async createStoreSettings(
     storeSettingsDto: StoreSettingsDto,
-  ): Promise<StoreSettings> {
+  ): Promise<ResponseWrapperDto<StoreSettings>> {
     const store = await this.getStoreSettings(storeSettingsDto);
 
-    return await this.storeSettingsRepository.save(store);
+    const resultSave = await this.storeSettingsRepository.save(store);
+
+    const result = resultSave ? [resultSave] : [];
+
+    return this.getFormattedResults(result);
   }
 
   public async getStoreSettingsById(id: number): Promise<StoreSettings> {
@@ -105,5 +112,16 @@ export class StoreSettingsService {
     }
 
     return store.id;
+  }
+
+  private getFormattedResults(
+    data: StoreSettingsResponseDto[],
+  ): ResponseWrapperDto<StoreSettingsResponseDto> {
+    const storeSettingsResponseDtos = plainToInstance(
+      StoreSettingsResponseDto,
+      data,
+    );
+
+    return new ResponseWrapperDto(storeSettingsResponseDtos);
   }
 }
