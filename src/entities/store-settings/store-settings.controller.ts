@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   Param,
   Post,
   Put,
@@ -22,13 +21,11 @@ export class StoreSettingsController {
   //TODO create validate queryParams from Dto in controller
   //uuid, start_date, end_date
   @Get('/')
-  @HttpCode(200)
   async getStoreSettingsByCriterial(@Query() query: Record<string, string>) {
     return await this.storeSettingsService.getStoreSettingsByCriterial(query);
   }
 
   @Get('/:id')
-  @HttpCode(200)
   async getStoreSettingsById(@Param() params: StoreSettingsParamsDto) {
     return await this.storeSettingsService.getStoreSettingsById(params.id);
   }

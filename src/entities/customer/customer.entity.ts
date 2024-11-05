@@ -1,3 +1,5 @@
+import { FIELDS } from '@src/db/const-fields';
+import { BONUS } from '@src/utils/bonus';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('customers')
@@ -6,76 +8,46 @@ export class Customer {
   id: number;
 
   @Column({
+    ...FIELDS.TEXT_ROW,
     name: 'name',
-    type: 'varchar',
-    length: 250,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   name: string;
 
   @Column({
+    ...FIELDS.PHONE,
     name: 'phone',
-    type: 'varchar',
-    length: 50,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   phone: string;
 
   @Column({
+    ...FIELDS.EMAIL,
     name: 'email',
-    type: 'varchar',
-    length: 50,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   email: string;
 
   @Column({
+    ...FIELDS.DECIMAL,
     name: 'amount_bonus',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
   })
   amountBonus: string;
 
   @Column({
+    ...FIELDS.DECIMAL,
     name: 'amount_box',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
   })
   amountBox: string;
-  //TODO set the default value for bonuses using a constant
+
   @Column({
+    ...FIELDS.PERCENT,
     name: 'bonus_percent',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
+    default: BONUS.start,
   })
   bonusPercent: string;
 
   @Column({
+    ...FIELDS.PERCENT,
     name: 'pay_percent',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
+    default: BONUS.payment,
   })
   payPercent: string;
 
@@ -83,24 +55,17 @@ export class Customer {
     name: 'count_day',
     type: 'int',
     nullable: true,
-    default: 0,
+    default: BONUS.countDay,
   })
   countDay: number;
 
   @Column({
-    name: 'created_at',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
+    ...FIELDS.CREATE_AT,
   })
   createdAt: Date;
 
   @Column({
-    name: 'updated_at',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
+    ...FIELDS.UPDATED_AT,
   })
   updatedAt: Date;
 }

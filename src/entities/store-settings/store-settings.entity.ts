@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { BONUS } from '@src/utils/bonus';
+import { FIELDS } from '@src/db/const-fields';
 
 @Entity('store_settings')
 export class StoreSettings {
@@ -8,53 +9,35 @@ export class StoreSettings {
 
   @Index()
   @Column({
+    ...FIELDS.UUID,
     name: 'store_uuid',
-    type: 'varchar',
-    length: 40,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   storeUuid: string;
 
   @Column({
+    ...FIELDS.DATE,
     name: 'start_date',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
   })
   startDate: Date;
 
   @Column({
+    ...FIELDS.PERCENT,
     name: 'start_bonus',
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
     default: BONUS.start,
-    collation: 'utf8_general_ci',
   })
   startBonus: string;
 
   @Column({
+    ...FIELDS.PERCENT,
     name: 'current_bonus',
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
     default: BONUS.current,
-    collation: 'utf8_general_ci',
   })
   currentBonus: string;
 
   @Column({
+    ...FIELDS.PERCENT,
     name: 'bonus_payment',
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
     default: BONUS.payment,
-    collation: 'utf8_general_ci',
   })
   bonusPayment: string;
 }

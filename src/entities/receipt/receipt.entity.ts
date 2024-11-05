@@ -1,3 +1,4 @@
+import { FIELDS } from '@src/db/const-fields';
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('receipts')
@@ -6,31 +7,20 @@ export class Customer {
   id: number;
 
   @Column({
+    ...FIELDS.UUID,
     name: 'uuid',
-    type: 'varchar',
-    length: 40,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   uuid: string;
 
   @Column({
+    ...FIELDS.TEXT_ROW,
     name: 'number_document',
-    type: 'varchar',
-    length: 250,
-    nullable: true,
-    default: '',
-    collation: 'utf8_general_ci',
   })
   numberDocument: string;
 
   @Column({
+    ...FIELDS.UPDATED_AT,
     name: 'date_document',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
   })
   dateDocument: Date;
 
@@ -59,59 +49,36 @@ export class Customer {
   customerId: number;
 
   @Column({
+    ...FIELDS.DECIMAL,
     name: 'amount_document',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
   })
   amountDocument: string;
 
   @Column({
+    ...FIELDS.DECIMAL,
     name: 'amount_action',
-    type: 'decimal',
-    precision: 12,
-    scale: 4,
-    nullable: true,
-    default: 0,
-    collation: 'utf8_general_ci',
   })
   amountAction: string;
 
   @Column({
+    ...FIELDS.DATE,
     name: 'start_date',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
   })
   startDate: Date;
 
   @Column({
+    ...FIELDS.DATE,
     name: 'end_date',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
   })
   endDate: Date;
 
   @Column({
-    name: 'created_at',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
+    ...FIELDS.CREATE_AT,
   })
   createdAt: Date;
 
   @Column({
-    name: 'updated_at',
-    type: 'datetime',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
+    ...FIELDS.UPDATED_AT,
   })
   updatedAt: Date;
 }
