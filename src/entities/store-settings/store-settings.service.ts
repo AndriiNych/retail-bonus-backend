@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 
-import { StoreSettings } from './storeSettings.entity';
-import { StoreSettingsDto } from './dto/storeSettings.dto';
+import { StoreSettings } from './store-settings.entity';
+import { StoreSettingsDto } from './dto/store-settings.dto';
 import { Store } from '../store/store.entity';
-import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
-import { ResponseWrapperDto } from '../dto/response-wrapper.dto';
-import { StoreSettingsResponseDto } from './dto/storeSettings-response.dto';
+import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
+import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
+import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 
 const TABLE_NAME = 'store)settings';
 const COLUMN_STORE_UUID = 'store_uuid';
@@ -32,7 +33,7 @@ export class StoreSettingsService {
 
     const result = resultSave ? [resultSave] : [];
 
-    return this.getFormattedResults(result);
+    return responseWrapper(result, StoreSettings);
   }
 
   public async getStoreSettingsById(id: number): Promise<StoreSettings> {
@@ -112,16 +113,5 @@ export class StoreSettingsService {
     }
 
     return store.id;
-  }
-
-  private getFormattedResults(
-    data: StoreSettingsResponseDto[],
-  ): ResponseWrapperDto<StoreSettingsResponseDto> {
-    const storeSettingsResponseDtos = plainToInstance(
-      StoreSettingsResponseDto,
-      data,
-    );
-
-    return new ResponseWrapperDto(storeSettingsResponseDtos);
   }
 }

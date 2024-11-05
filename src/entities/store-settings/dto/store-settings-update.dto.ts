@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { StoreSettingsDto } from './storeSettings.dto';
+import { StoreSettingsDto } from './store-settings.dto';
 
 export class StoreSettingsUpdateDto extends PartialType(StoreSettingsDto) {}

@@ -10,10 +10,10 @@ import {
   Query,
 } from '@nestjs/common';
 
-import { StoreSettingsService } from './storeSettings.service';
-import { StoreSettingsDto } from './dto/storeSettings.dto';
-import { StoreSettingsParamsDto } from './dto/storeSettings-params.dto';
-import { StoreSettingsUpdateDto } from './dto/storeSettings-update.dto';
+import { StoreSettingsService } from './store-settings.service';
+import { StoreSettingsDto } from './dto/store-settings.dto';
+import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
+import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
 
 @Controller('store-settings')
 export class StoreSettingsController {

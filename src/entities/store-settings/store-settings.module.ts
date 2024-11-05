@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StoreSettings } from './storeSettings.entity';
-import { StoreSettingsController } from './storeSettings.controller';
-import { StoreSettingsService } from './storeSettings.service';
+import { StoreSettings } from './store-settings.entity';
+import { StoreSettingsController } from './store-settings.controller';
+import { StoreSettingsService } from './store-settings.service';
 import { Store } from '../store/store.entity';
 
 @Module({

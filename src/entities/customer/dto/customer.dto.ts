@@ -6,21 +6,16 @@ import {
   Min,
   IsOptional,
   Matches,
-  IsObject,
-  Validate,
 } from 'class-validator';
 
 import { MSG } from '@src/utils/get.message';
 import { Type } from 'class-transformer';
-import {
-  IsValidObject,
-  IsValidObjectConstraint,
-} from '@src/utils/dto/isValidObject.dto';
+import { IsSingleObject } from '@src/utils/dto/is-single-object.dto';
 
+@IsSingleObject()
 export class CustomerDto {
   @IsString()
   @IsNotEmpty()
-  @Validate(IsValidObjectConstraint)
   name: string;
 
   @Matches(/^\d+$/, {

@@ -1,4 +1,4 @@
-import { IsLessThanOrEqualTo } from '@src/utils/dto/isLessThanOrEqual.dto';
+import { IsLessThanOrEqualTo } from '@src/utils/dto/is-less-than-or-equal.dto';
 import { Type } from 'class-transformer';
 import {
   IsNotEmpty,

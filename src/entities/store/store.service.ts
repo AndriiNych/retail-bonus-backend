@@ -9,9 +9,10 @@ import { Repository, UpdateResult } from 'typeorm';
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
-import { ResponseWrapperDto } from '../dto/response-wrapper.dto';
 import { StoreResponseDto } from './dto/store-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
+import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 
 @Injectable()
 export class StoreService {
@@ -23,7 +24,7 @@ export class StoreService {
   public async getAllStores(): Promise<ResponseWrapperDto<StoreResponseDto>> {
     const result = await this.storeRepository.find();
 
-    return this.getFormattedResults(result);
+    return responseWrapper(result, StoreResponseDto);
   }
 
   public async getStoreByUuid(
@@ -33,7 +34,7 @@ export class StoreService {
 
     const result = resultFind ? [resultFind] : [];
 
-    return this.getFormattedResults(result);
+    return responseWrapper(result, StoreResponseDto);
   }
 
   public async createStore(
@@ -47,7 +48,7 @@ export class StoreService {
 
     const result = resultSave ? [resultSave] : [];
 
-    return this.getFormattedResults(result);
+    return responseWrapper(result, StoreResponseDto);
   }
 
   public async updateStoreByUuid(
@@ -65,15 +66,7 @@ export class StoreService {
       result.push(await this.fetchStoreByUuid(uuid));
     }
 
-    return this.getFormattedResults(result);
-  }
-
-  private getFormattedResults(
-    data: StoreResponseDto[],
-  ): ResponseWrapperDto<StoreResponseDto> {
-    const storeResponseDtos = plainToInstance(StoreResponseDto, data);
-
-    return new ResponseWrapperDto(storeResponseDtos);
+    return responseWrapper(result, StoreResponseDto);
   }
 
   private async validateExistenceByUuid(uuid: string): Promise<void> {

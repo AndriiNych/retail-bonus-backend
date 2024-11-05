@@ -7,9 +7,7 @@ import { TypeOrmModule } from './db/typeorm.module';
 import { ActiveModule } from './entities/active/active.module';
 import { CustomerModule } from './entities/customer/customer.module';
 import { StoreModule } from './entities/store/store.module';
-import { StoreSettingsModule } from './entities/store-settings/storeSettings.module';
-// import { ApiKeyGuard } from './auth/apiKeyGuard';
-import { APP_GUARD } from '@nestjs/core';
+import { StoreSettingsModule } from './entities/store-settings/store-settings.module';
 
 @Module({
   imports: [
@@ -21,6 +19,5 @@ import { APP_GUARD } from '@nestjs/core';
     StoreModule,
     StoreSettingsModule,
   ],
-  // providers: [{ provide: APP_GUARD, useClass: ApiKeyGuard }],
 })
 export class AppModule {}

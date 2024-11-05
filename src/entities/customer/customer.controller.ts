@@ -1,7 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
-// import { CreateCustomerDto } from './dto/customer.dto';
 import { CustomersDto } from './dto/customers.dto';
 import { CustomerDto } from './dto/customer.dto';
 
@@ -9,25 +8,25 @@ import { CustomerDto } from './dto/customer.dto';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
-  //TODO check all API “responses” and bring them to the same standard
+  //TODO implement query with date >=
   @Get('/')
-  @HttpCode(200)
   async getAllCustomers() {
-    const customers = await this.customerService.getAllCustomers();
-    return { status: 'ok', data: customers };
+    return await this.customerService.getAllCustomers();
   }
 
-  //TODO check the uniqueness of the phone number
+  //TODO implement a feature
+  @Get('/:phone')
+  async getCustomerByPhone() {
+    return '';
+  }
+
   @Post('single')
   async createCustomer(@Body() customer: CustomerDto) {
-    console.log(customer);
-    return customer;
-    // return await this.customerService.createCustomer(customer);
+    return await this.customerService.createCustomer(customer);
   }
 
   @Post('multiple')
   async createCustomers(@Body() customers: CustomersDto) {
-    return customers;
-    //await this.customerService.createCustomers(customers);
+    return await this.customerService.createCustomers(customers);
   }
 }

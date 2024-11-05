@@ -24,9 +24,8 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transformOptions: {
-        enableImplicitConversion: true, // Вмикає автоматичне перетворення
+        enableImplicitConversion: true,
       },
-      // stopAtFirstError: true,
     }),
   );
 
