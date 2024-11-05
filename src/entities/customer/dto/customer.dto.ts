@@ -7,6 +7,7 @@ import {
   IsOptional,
   Matches,
   Length,
+  MaxLength,
 } from 'class-validator';
 
 import { MSG } from '@src/utils/get.message';
@@ -23,6 +24,7 @@ export class CustomerDto {
   })
   @IsString()
   @Length(12)
+  @MaxLength(12)
   @IsNotEmpty()
   phone: string;
 

@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
@@ -24,10 +16,9 @@ export class CustomerController {
     return await this.customerService.getAllCustomers();
   }
 
-  //TODO implement a feature
   @Get('/:phone')
-  async getCustomerByPhone() {
-    return '';
+  async getCustomerByPhone(@Param() customerParamsDto: CustomerParamsDto) {
+    return await this.customerService.getCustomerByPhone(customerParamsDto);
   }
 
   @Post('single')

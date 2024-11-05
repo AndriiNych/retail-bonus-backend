@@ -28,6 +28,18 @@ export class CustomerService {
     return responseWrapper(result, CustomerResponseDto);
   }
 
+  public async getCustomerByPhone(
+    customerParamsDto: CustomerParamsDto,
+  ): Promise<ResponseWrapperDto<CustomerDto>> {
+    const { phone } = customerParamsDto;
+
+    const resultFind = await this.customerRepository.findOneBy({ phone });
+
+    const result = resultFind ? [resultFind] : [];
+
+    return responseWrapper(result, CustomerResponseDto);
+  }
+
   public async createCustomer(
     customerDto: CustomerDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
