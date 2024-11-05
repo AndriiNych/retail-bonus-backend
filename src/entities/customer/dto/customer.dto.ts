@@ -6,22 +6,23 @@ import {
   Min,
   IsOptional,
   Matches,
+  Length,
 } from 'class-validator';
 
 import { MSG } from '@src/utils/get.message';
-import { Type } from 'class-transformer';
 import { IsSingleObject } from '@src/utils/dto/is-single-object.dto';
 
 @IsSingleObject()
 export class CustomerDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name?: string;
 
   @Matches(/^\d+$/, {
     message: MSG.ERR.VALIDATION.number('phone'),
   })
   @IsString()
+  @Length(12)
   @IsNotEmpty()
   phone: string;
 
@@ -63,11 +64,3 @@ export class CustomerDto {
   @IsOptional()
   countDay?: number;
 }
-
-//TODO add ShopID to Dto
-// export class CustomerDto {
-//   @IsObject()
-//   @ValidateNested()
-//   @Type(() => CustomerSingleDto)
-//   customer: CustomerSingleDto;
-// }

@@ -8,6 +8,8 @@ import { CustomerDto } from './dto/customer.dto';
 import { CustomerResponseDto } from './dto/customer-response.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
+import { CustomerUpdateDto } from './dto/customer-update.dto';
+import { CustomerParamsDto } from './dto/customer-params.dto';
 
 @Injectable()
 export class CustomerService {
@@ -48,6 +50,25 @@ export class CustomerService {
     const resultSave = await this.getResultSaveCustomers(customers);
 
     const result = resultSave ? [...resultSave] : [];
+
+    return responseWrapper(result, CustomerResponseDto);
+  }
+
+  public async updateCustomerByPhone(
+    customerParamsDto: CustomerParamsDto,
+    customerUpdateDto: CustomerUpdateDto,
+  ): Promise<ResponseWrapperDto<CustomerDto>> {
+    const { phone } = customerParamsDto;
+    const resultUpdate = await this.customerRepository.update(
+      { phone },
+      customerUpdateDto,
+    );
+
+    const result = [];
+
+    if (resultUpdate.affected === 1) {
+      result.push(await this.customerRepository.findOneBy({ phone }));
+    }
 
     return responseWrapper(result, CustomerResponseDto);
   }

@@ -29,5 +29,8 @@ export class CustomerResponseDto {
   countDay: number;
 
   @Expose()
-  dateChange: Date;
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
 }

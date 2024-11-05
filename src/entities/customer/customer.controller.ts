@@ -1,8 +1,18 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
 import { CustomerDto } from './dto/customer.dto';
+import { CustomerUpdateDto } from './dto/customer-update.dto';
+import { CustomerParamsDto } from './dto/customer-params.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -28,5 +38,16 @@ export class CustomerController {
   @Post('multiple')
   async createCustomers(@Body() customers: CustomersDto) {
     return await this.customerService.createCustomers(customers);
+  }
+
+  @Put(':phone')
+  async updateCustomer(
+    @Param() customerParamsDto: CustomerParamsDto,
+    @Body() customerUpdateDto: CustomerUpdateDto,
+  ) {
+    return await this.customerService.updateCustomerByPhone(
+      customerParamsDto,
+      customerUpdateDto,
+    );
   }
 }

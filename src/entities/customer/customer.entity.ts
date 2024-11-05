@@ -87,13 +87,20 @@ export class Customer {
   })
   countDay: number;
 
-  //TODO change name to updated_at
   @Column({
-    name: 'date_change',
+    name: 'created_at',
+    type: 'datetime',
+    nullable: true,
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
+
+  @Column({
+    name: 'updated_at',
     type: 'datetime',
     nullable: true,
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  dateChange: Date;
+  updatedAt: Date;
 }
