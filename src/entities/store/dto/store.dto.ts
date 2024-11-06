@@ -14,7 +14,7 @@ export class StoreDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
+  @MaxLength(250)
   name: string;
 
   @IsOptional()

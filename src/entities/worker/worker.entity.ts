@@ -1,8 +1,8 @@
 import { FIELDS } from '@src/db/const-fields';
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
-@Entity('worker')
-export class StoreSettings {
+@Entity('workers')
+export class Worker {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,4 +25,9 @@ export class StoreSettings {
     name: 'name',
   })
   name: string;
+
+  @Column({
+    ...FIELDS.IS_DELETED,
+  })
+  isDeleted: boolean;
 }

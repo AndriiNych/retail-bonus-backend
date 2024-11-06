@@ -11,7 +11,6 @@ import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
-  //TODO implement query with date >=
   @Get('/')
   async getAllCustomers(
     @Query() customerQueryParamsDto: CustomerQueryParamsDto,

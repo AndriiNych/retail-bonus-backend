@@ -48,7 +48,7 @@ export class CustomerService {
   public async createCustomer(
     customerDto: CustomerDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
-    await this.validateEsistenceByPhone(customerDto.phone);
+    await this.validateExistenceByPhone(customerDto.phone);
 
     const newCustomer = this.customerRepository.create(customerDto);
 
@@ -130,7 +130,7 @@ export class CustomerService {
     return result;
   }
 
-  private async validateEsistenceByPhone(phone: string): Promise<void> {
+  private async validateExistenceByPhone(phone: string): Promise<void> {
     const customer = await this.customerRepository.findOneBy({ phone });
     if (customer) {
       throw new ConflictException(

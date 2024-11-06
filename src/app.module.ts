@@ -8,6 +8,7 @@ import { ActiveModule } from './entities/active/active.module';
 import { CustomerModule } from './entities/customer/customer.module';
 import { StoreModule } from './entities/store/store.module';
 import { StoreSettingsModule } from './entities/store-settings/store-settings.module';
+import { WorkerModule } from './entities/worker/worker.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { StoreSettingsModule } from './entities/store-settings/store-settings.mo
     TypeOrmModule,
     ActiveModule,
     CustomerModule,
+    WorkerModule,
     StoreModule,
     StoreSettingsModule,
   ],
