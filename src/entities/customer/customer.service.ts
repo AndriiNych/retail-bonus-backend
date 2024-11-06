@@ -35,7 +35,7 @@ export class CustomerService {
 
   public async getCustomerByPhone(
     customerParamsDto: CustomerParamsDto,
-  ): Promise<ResponseWrapperDto<CustomerDto>> {
+  ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
 
     const resultFind = await this.customerRepository.findOneBy({ phone });
@@ -74,7 +74,7 @@ export class CustomerService {
   public async updateCustomerByPhone(
     customerParamsDto: CustomerParamsDto,
     customerUpdateDto: CustomerUpdateDto,
-  ): Promise<ResponseWrapperDto<CustomerDto>> {
+  ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
     const resultUpdate = await this.customerRepository.update(
       { phone },
