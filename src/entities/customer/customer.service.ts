@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { Customer } from './customer.entity';
 import { CustomersDto } from './dto/customers.dto';
@@ -10,7 +10,10 @@ import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
+import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 
+const TABLE_NAME = 'customers';
+const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
 export class CustomerService {
   constructor(
@@ -18,10 +21,12 @@ export class CustomerService {
     private readonly customerRepository: Repository<Customer>,
   ) {}
 
-  public async getAllCustomers(): Promise<
-    ResponseWrapperDto<CustomerResponseDto>
-  > {
-    const resultSave = await this.customerRepository.find();
+  public async getAllCustomers(
+    customerQueryParamsDto: CustomerQueryParamsDto,
+  ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
+    const query = this.getQueryByCriterial(customerQueryParamsDto);
+
+    const resultSave = await query.getMany();
 
     const result = resultSave ? [...resultSave] : [];
 
@@ -83,6 +88,23 @@ export class CustomerService {
     }
 
     return responseWrapper(result, CustomerResponseDto);
+  }
+
+  private getQueryByCriterial(
+    customerQueryParamsDto: CustomerQueryParamsDto,
+  ): SelectQueryBuilder<Customer> {
+    const { updated_at } = customerQueryParamsDto;
+
+    const query = this.customerRepository.createQueryBuilder(TABLE_NAME);
+
+    if (updated_at) {
+      query.andWhere(
+        `${TABLE_NAME}.${COLUMN_UPDATED_AT} >= :${COLUMN_UPDATED_AT}`,
+        { updated_at },
+      );
+    }
+
+    return query;
   }
 
   private async getResultSaveCustomers(

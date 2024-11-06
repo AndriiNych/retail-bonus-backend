@@ -6,15 +6,14 @@ import { StoreSettings } from './store-settings.entity';
 import { StoreSettingsDto } from './dto/store-settings.dto';
 import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
-import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
-import { plainToInstance } from 'class-transformer';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 
-const TABLE_NAME = 'store)settings';
+const TABLE_NAME = 'store_settings';
 const COLUMN_STORE_UUID = 'store_uuid';
 const COLUMN_START_DATE = 'start_date';
 const COLUMN_END_DATE = 'end_date';
+
 @Injectable()
 export class StoreSettingsService {
   constructor(
@@ -89,7 +88,7 @@ export class StoreSettingsService {
 
     if (start_date) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_START_DATE} = :${COLUMN_START_DATE}`,
+        `${TABLE_NAME}.${COLUMN_START_DATE} >= :${COLUMN_START_DATE}`,
         {
           start_date,
         },
@@ -97,9 +96,12 @@ export class StoreSettingsService {
     }
 
     if (end_date) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_END_DATE} = :${COLUMN_END_DATE}`, {
-        end_date,
-      });
+      query.andWhere(
+        `${TABLE_NAME}.${COLUMN_END_DATE} <= :${COLUMN_END_DATE}`,
+        {
+          end_date,
+        },
+      );
     }
 
     return query;

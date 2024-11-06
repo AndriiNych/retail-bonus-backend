@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
 import { CustomerDto } from './dto/customer.dto';
 import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
+import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -12,8 +13,10 @@ export class CustomerController {
 
   //TODO implement query with date >=
   @Get('/')
-  async getAllCustomers() {
-    return await this.customerService.getAllCustomers();
+  async getAllCustomers(
+    @Query() customerQueryParamsDto: CustomerQueryParamsDto,
+  ) {
+    return await this.customerService.getAllCustomers(customerQueryParamsDto);
   }
 
   @Get('/:phone')
