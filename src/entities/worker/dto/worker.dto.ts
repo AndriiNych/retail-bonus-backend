@@ -1,3 +1,4 @@
+import { FIELDS_LENGTH } from '@src/db/const-fields';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -9,17 +10,17 @@ import {
 export class WorkerDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(36)
+  @MaxLength(FIELDS_LENGTH.UUID)
   uuid: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(36)
-  storeUuid: number;
+  @MaxLength(FIELDS_LENGTH.UUID)
+  storeUuid: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(250)
+  @MaxLength(FIELDS_LENGTH.NAME)
   name: string;
 
   @IsOptional()

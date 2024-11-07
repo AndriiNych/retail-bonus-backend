@@ -12,46 +12,61 @@ const DATE_SHABLON = {
   },
 };
 
+export const FIELDS_LENGTH = {
+  NAME: 250,
+  UUID: 36,
+  EMAIL: 50,
+  PHONE: 12,
+  DECIMAL: {
+    PRECISION: 12,
+    SCALE: 2,
+  },
+  PERCENT: {
+    PRECISION: 5,
+    SCALE: 2,
+  },
+};
+
 export const FIELDS = {
   DECIMAL: {
     type: 'decimal' as const,
-    precision: 12,
-    scale: 2,
+    precision: FIELDS_LENGTH.DECIMAL.PRECISION,
+    scale: FIELDS_LENGTH.DECIMAL.SCALE,
     nullable: true,
     default: 0,
     collation: 'utf8_general_ci',
   },
   PERCENT: {
     type: 'decimal' as const,
-    precision: 5,
-    scale: 2,
+    precision: FIELDS_LENGTH.PERCENT.PRECISION,
+    scale: FIELDS_LENGTH.PERCENT.SCALE,
     nullable: true,
     collation: 'utf8_general_ci',
   },
   TEXT_ROW: {
     type: 'varchar' as const,
-    length: 250,
+    length: FIELDS_LENGTH.NAME,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
   },
   PHONE: {
     type: 'varchar' as const,
-    length: 50,
+    length: FIELDS_LENGTH.PHONE,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
   },
   EMAIL: {
     type: 'varchar' as const,
-    length: 50,
+    length: FIELDS_LENGTH.EMAIL,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',
   },
   UUID: {
     type: 'varchar' as const,
-    length: 40,
+    length: FIELDS_LENGTH.UUID,
     nullable: true,
     default: '',
     collation: 'utf8_general_ci',

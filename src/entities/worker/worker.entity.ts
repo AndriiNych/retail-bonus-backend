@@ -18,7 +18,7 @@ export class Worker {
     ...FIELDS.UUID,
     name: 'store_uuid',
   })
-  storeUuid: number;
+  storeUuid: string;
 
   @Column({
     ...FIELDS.TEXT_ROW,

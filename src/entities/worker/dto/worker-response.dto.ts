@@ -8,7 +8,7 @@ export class WorkerResponseDto {
   uuid: string;
 
   @Expose()
-  storeUuid: number;
+  storeUuid: string;
 
   @Expose()
   name: string;

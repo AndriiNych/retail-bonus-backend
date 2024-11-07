@@ -88,12 +88,12 @@ export class WorkerService {
     if (storeUuid) {
       query.andWhere(
         `${TABLE_NAME}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
-        { COLUMN_STORE_UUID: storeUuid },
+        { store_uuid: storeUuid },
       );
     }
 
     if (name) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_ID} LIKE :${COLUMN_ID}`, {
+      query.andWhere(`${TABLE_NAME}.${COLUMN_NAME} LIKE :${COLUMN_NAME}`, {
         name: `%${name}%`,
       });
     }

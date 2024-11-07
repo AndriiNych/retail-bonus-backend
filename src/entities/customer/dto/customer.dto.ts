@@ -12,10 +12,12 @@ import {
 
 import { MSG } from '@src/utils/get.message';
 import { IsSingleObject } from '@src/utils/dto/is-single-object.dto';
+import { FIELDS_LENGTH } from '@src/db/const-fields';
 
 @IsSingleObject()
 export class CustomerDto {
   @IsString()
+  @MaxLength(FIELDS_LENGTH.NAME)
   @IsNotEmpty()
   name?: string;
 
@@ -23,12 +25,13 @@ export class CustomerDto {
     message: MSG.ERR.VALIDATION.number('phone'),
   })
   @IsString()
-  @Length(12)
-  @MaxLength(12)
+  @Length(FIELDS_LENGTH.PHONE)
+  @MaxLength(FIELDS_LENGTH.PHONE)
   @IsNotEmpty()
   phone: string;
 
   @IsEmail({}, { message: MSG.ERR.VALIDATION.email('email') })
+  @MaxLength(FIELDS_LENGTH.EMAIL)
   @IsString()
   @IsOptional()
   email?: string;
