@@ -2,12 +2,11 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 
-// import { startActivateOnrenderServer } from './utils/active.onrender';
+import { startActivateOnrenderServer } from './utils/active.onrender';
 import { ConfigService } from '@nestjs/config';
 import { ApiKeyAuthGuard } from './auth/apiKeyGuard';
 
-//TODO make send request with authorization
-// startActivateOnrenderServer();
+startActivateOnrenderServer();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

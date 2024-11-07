@@ -43,9 +43,7 @@ export class WorkerService {
   ): Promise<ResponseWrapperDto<WorkerResponseDto>> {
     const query = this.getQueryByCriterial(workerQueryParamsDto);
 
-    const resultSave = await query.getMany();
-
-    const result = resultSave ? [...resultSave] : [];
+    const result = await query.getMany();
 
     return responseWrapper(result, WorkerResponseDto);
   }

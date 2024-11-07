@@ -26,9 +26,7 @@ export class CustomerService {
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const query = this.getQueryByCriterial(customerQueryParamsDto);
 
-    const resultSave = await query.getMany();
-
-    const result = resultSave ? [...resultSave] : [];
+    const result = await query.getMany();
 
     return responseWrapper(result, CustomerResponseDto);
   }
