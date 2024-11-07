@@ -1,18 +1,14 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
 import { StoreResponseDto } from './dto/store-response.dto';
-import { plainToInstance } from 'class-transformer';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
+import { StoreParams } from './dto/store-params.dto';
 
 @Injectable()
 export class StoreService {
@@ -28,8 +24,10 @@ export class StoreService {
   }
 
   public async getStoreByUuid(
-    uuid: string,
+    storeParams: StoreParams,
   ): Promise<ResponseWrapperDto<StoreResponseDto>> {
+    const { uuid } = storeParams;
+
     const resultFind = await this.fetchStoreByUuid(uuid);
 
     const result = resultFind ? [resultFind] : [];
@@ -52,9 +50,11 @@ export class StoreService {
   }
 
   public async updateStoreByUuid(
-    uuid: string,
+    storeParams: StoreParams,
     storeUpdateDto: StoreUpdateDto,
   ): Promise<ResponseWrapperDto<StoreResponseDto>> {
+    const { uuid } = storeParams;
+
     const resultUpdate = await this.storeRepository.update(
       { uuid },
       storeUpdateDto,

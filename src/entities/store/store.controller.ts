@@ -4,6 +4,7 @@ import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
 import { getResultObjectWithData } from '@src/utils/getResultObjectWithData';
+import { StoreParams } from './dto/store-params.dto';
 
 @Controller('stores')
 export class StoreController {
@@ -15,8 +16,8 @@ export class StoreController {
   }
 
   @Get('/:uuid')
-  async getStoreByUuid(@Param('uuid') uuid: string) {
-    return await this.storeService.getStoreByUuid(uuid);
+  async getStoreByUuid(@Param() storeParams: StoreParams) {
+    return await this.storeService.getStoreByUuid(storeParams);
   }
 
   @Post('/')
@@ -26,9 +27,12 @@ export class StoreController {
 
   @Put('/:uuid')
   async updateStore(
-    @Param('uuid') uuid: string,
+    @Param() storeParams: StoreParams,
     @Body() storeUpdateDto: StoreUpdateDto,
   ) {
-    return await this.storeService.updateStoreByUuid(uuid, storeUpdateDto);
+    return await this.storeService.updateStoreByUuid(
+      storeParams,
+      storeUpdateDto,
+    );
   }
 }

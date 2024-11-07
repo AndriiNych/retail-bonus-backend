@@ -1,20 +1,8 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  MaxLength,
-} from 'class-validator';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
+import { StoreDto } from './store.dto';
 
-//TODO make constants for fields length
-export class StoreUpdateDto {
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  name?: string;
+export class PrepareStoreUpdateDto extends OmitType(StoreDto, [
+  'uuid',
+] as const) {}
 
-  @IsOptional()
-  @IsBoolean()
-  isDeleted?: boolean;
-}
+export class StoreUpdateDto extends PartialType(PrepareStoreUpdateDto) {}
