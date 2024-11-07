@@ -12,7 +12,8 @@ import {
 
 import { MSG } from '@src/utils/get.message';
 import { IsSingleObject } from '@src/utils/dto/is-single-object.dto';
-import { FIELDS_LENGTH } from '@src/db/const-fields';
+import { FIELDS_LENGTH, MAX_VALUE } from '@src/db/const-fields';
+import { IsLessThanOrEqualTo } from '@src/utils/dto/is-less-than-or-equal.dto';
 
 @IsSingleObject()
 export class CustomerDto {
@@ -36,30 +37,32 @@ export class CustomerDto {
   @IsOptional()
   email?: string;
 
-  @Matches(/^\d+(\.\d{1,4})?$/, {
+  @Matches(/^\d+(\.\d{1,2})?$/, {
     message: MSG.ERR.VALIDATION.decimal('amountBonus'),
   })
   @IsString()
   @IsOptional()
   amountBonus?: string;
 
-  @Matches(/^\d+(\.\d{1,4})?$/, {
+  @Matches(/^\d+(\.\d{1,2})?$/, {
     message: MSG.ERR.VALIDATION.decimal('amountBox'),
   })
   @IsString()
   @IsOptional()
   amountBox?: string;
 
-  @Matches(/^\d+(\.\d{1,4})?$/, {
+  @Matches(/^\d+(\.\d{1,2})?$/, {
     message: MSG.ERR.VALIDATION.decimal('bonusPercent'),
   })
+  @IsLessThanOrEqualTo(MAX_VALUE.PERCENT)
   @IsString()
   @IsOptional()
   bonusPercent?: string;
 
-  @Matches(/^\d+(\.\d{1,4})?$/, {
+  @Matches(/^\d+(\.\d{1,2})?$/, {
     message: MSG.ERR.VALIDATION.decimal('payPercent'),
   })
+  @IsLessThanOrEqualTo(MAX_VALUE.PERCENT)
   @IsString()
   @IsOptional()
   payPercent?: string;

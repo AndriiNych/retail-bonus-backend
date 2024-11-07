@@ -13,21 +13,28 @@ import { StoreSettingsService } from './store-settings.service';
 import { StoreSettingsDto } from './dto/store-settings.dto';
 import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
 import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
+import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 
 @Controller('store-settings')
 export class StoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}
 
-  //TODO create validate queryParams from Dto in controller
-  //uuid, start_date, end_date
   @Get('/')
-  async getStoreSettingsByCriterial(@Query() query: Record<string, string>) {
-    return await this.storeSettingsService.getStoreSettingsByCriterial(query);
+  async getStoreSettingsByCriterial(
+    @Query() storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
+  ) {
+    return await this.storeSettingsService.getStoreSettingsByCriterial(
+      storeSettingsQueryParamsDto,
+    );
   }
 
   @Get('/:id')
-  async getStoreSettingsById(@Param() params: StoreSettingsParamsDto) {
-    return await this.storeSettingsService.getStoreSettingsById(params.id);
+  async getStoreSettingsById(
+    @Param() storeSettingsParamsDto: StoreSettingsParamsDto,
+  ) {
+    return await this.storeSettingsService.getStoreSettingsById(
+      storeSettingsParamsDto,
+    );
   }
 
   @Post('/')
@@ -36,18 +43,22 @@ export class StoreSettingsController {
   }
 
   @Delete('/:id')
-  async deleteStoreSettings(@Param() params: StoreSettingsParamsDto) {
-    return await this.storeSettingsService.deleteStoreSettingsById(params.id);
+  async deleteStoreSettings(
+    @Param() storeSettingsParamsDto: StoreSettingsParamsDto,
+  ) {
+    return await this.storeSettingsService.deleteStoreSettingsById(
+      storeSettingsParamsDto,
+    );
   }
 
   @Put('/:id')
   async updateStoreSettings(
-    @Param() params: StoreSettingsParamsDto,
-    @Body() storeSettings: StoreSettingsUpdateDto,
+    @Param() storeSettingsParamsDto: StoreSettingsParamsDto,
+    @Body() storeSettingsUpdateDto: StoreSettingsUpdateDto,
   ) {
     return await this.storeSettingsService.updateStoreSettingsById(
-      params.id,
-      storeSettings,
+      storeSettingsParamsDto,
+      storeSettingsUpdateDto,
     );
   }
 }

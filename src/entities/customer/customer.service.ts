@@ -74,6 +74,7 @@ export class CustomerService {
     customerUpdateDto: CustomerUpdateDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
+
     const resultUpdate = await this.customerRepository.update(
       { phone },
       customerUpdateDto,

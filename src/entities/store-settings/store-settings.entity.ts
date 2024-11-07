@@ -40,4 +40,14 @@ export class StoreSettings {
     default: BONUS.payment,
   })
   bonusPayment: string;
+
+  @Column({
+    ...FIELDS.CREATE_AT,
+  })
+  createdAt: Date;
+
+  @Column({
+    ...FIELDS.UPDATED_AT,
+  })
+  updatedAt: Date;
 }

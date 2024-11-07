@@ -18,4 +18,10 @@ export class StoreSettingsResponseDto {
 
   @Expose()
   bonusPayment: string;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
 }

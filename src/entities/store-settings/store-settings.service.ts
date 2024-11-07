@@ -8,6 +8,9 @@ import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
+import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
+import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
+import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 
 const TABLE_NAME = 'store_settings';
 const COLUMN_STORE_UUID = 'store_uuid';
@@ -25,55 +28,89 @@ export class StoreSettingsService {
 
   public async createStoreSettings(
     storeSettingsDto: StoreSettingsDto,
-  ): Promise<ResponseWrapperDto<StoreSettings>> {
-    const store = await this.getStoreSettings(storeSettingsDto);
+  ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
+    const newStoreSettings =
+      await this.storeSettingsRepository.create(storeSettingsDto);
 
-    const resultSave = await this.storeSettingsRepository.save(store);
+    const resultSave =
+      await this.storeSettingsRepository.save(newStoreSettings);
 
     const result = resultSave ? [resultSave] : [];
 
-    return responseWrapper(result, StoreSettings);
+    return responseWrapper(result, StoreSettingsResponseDto);
   }
 
-  public async getStoreSettingsById(id: number): Promise<StoreSettings> {
-    const result = await this.storeSettingsRepository.findOneBy({ id });
-    if (!result) {
+  public async getStoreSettingsById(
+    storeSettingsParamsDto: StoreSettingsParamsDto,
+  ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
+    const { id } = storeSettingsParamsDto;
+
+    const resultSave = await this.storeSettingsRepository.findOneBy({ id });
+
+    if (!resultSave) {
       throw new NotFoundException(`StoreSettings with Id: ${id} not found.`);
     }
-    return result;
+
+    const result = resultSave ? [resultSave] : [];
+
+    return responseWrapper(result, StoreSettingsResponseDto);
   }
 
   public async getStoreSettingsByCriterial(
-    queryParams: Record<string, string>,
-  ): Promise<StoreSettings[]> {
-    const query = this.getQueryByCriterial(queryParams);
+    storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
+  ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
+    const query = this.getQueryByCriterial(storeSettingsQueryParamsDto);
 
-    return await query.getMany();
+    const result = await query.getMany();
+
+    return responseWrapper(result, StoreSettingsResponseDto);
   }
 
-  public async deleteStoreSettingsById(id: number) {
-    return await this.storeSettingsRepository.delete({ id });
+  public async deleteStoreSettingsById(
+    storeSettingsParamsDto: StoreSettingsParamsDto,
+  ): Promise<ResponseWrapperDto<StoreSettingsDto>> {
+    const { id } = storeSettingsParamsDto;
+
+    const resultDeleted = await this.storeSettingsRepository.findOneBy({ id });
+
+    const result = [];
+
+    if (resultDeleted) {
+      await this.storeSettingsRepository.delete({ id });
+      result.push(resultDeleted);
+    }
+
+    return responseWrapper(result, StoreSettingsResponseDto);
   }
 
   public async updateStoreSettingsById(
-    id: number,
+    storeSettingsParamsDto: StoreSettingsParamsDto,
     storeSettingsUpdateDto: StoreSettingsUpdateDto,
-  ): Promise<UpdateResult> {
-    const store = await this.getStoreSettings(storeSettingsUpdateDto);
+  ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
+    const { id } = storeSettingsParamsDto;
 
-    return await this.storeSettingsRepository.update({ id }, store);
+    const resultUpdate = await this.storeSettingsRepository.update(
+      { id },
+      storeSettingsUpdateDto,
+    );
+
+    const result = [];
+
+    if (resultUpdate.affected === 1) {
+      result.push(await this.storeSettingsRepository.findOneBy({ id }));
+    }
+
+    return responseWrapper(result, StoreSettingsResponseDto);
   }
 
-  private async getStoreSettings(storeSettingsDto: StoreSettingsUpdateDto) {
-    this.getStoreIdByUuid(storeSettingsDto.store_uuid);
-
-    const storeSettings = this.storeSettingsRepository.create(storeSettingsDto);
-
-    return storeSettings;
-  }
-
-  private getQueryByCriterial(criterial: Record<string, string>) {
-    const { store_uuid, start_date, end_date } = criterial;
+  private getQueryByCriterial(
+    storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
+  ) {
+    const {
+      storeUuid: store_uuid,
+      start_date,
+      end_date,
+    } = storeSettingsQueryParamsDto;
 
     const query = this.storeSettingsRepository.createQueryBuilder(TABLE_NAME);
 
@@ -97,7 +134,7 @@ export class StoreSettingsService {
 
     if (end_date) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_END_DATE} <= :${COLUMN_END_DATE}`,
+        `${TABLE_NAME}.${COLUMN_START_DATE} <= :${COLUMN_END_DATE}`,
         {
           end_date,
         },
@@ -105,15 +142,5 @@ export class StoreSettingsService {
     }
 
     return query;
-  }
-
-  private async getStoreIdByUuid(uuid: string) {
-    const store = await this.storeRepository.findOneBy({ uuid });
-
-    if (!store) {
-      throw new NotFoundException(`Store with UUID: ${uuid} not found.`);
-    }
-
-    return store.id;
   }
 }

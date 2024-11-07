@@ -7,7 +7,7 @@ export const MSG = {
         return `${fieldName} must be an array`;
       },
       decimal: (fieldName: string): string => {
-        return `${fieldName} must be a decimal number with up to 4 decimal places`;
+        return `${fieldName} must be a decimal number with up to 2 decimal places`;
       },
       email: (fieldName: string): string => {
         return `${fieldName} must be a valid email address`;

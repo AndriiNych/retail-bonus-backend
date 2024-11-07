@@ -27,6 +27,10 @@ export const FIELDS_LENGTH = {
   },
 };
 
+export const MAX_VALUE = {
+  PERCENT: 100,
+};
+
 export const FIELDS = {
   DECIMAL: {
     type: 'decimal' as const,
