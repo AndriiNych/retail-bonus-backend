@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { StoreSettings } from './store-settings.entity';
 import { StoreSettingsDto } from './dto/store-settings.dto';
-import { Store } from '../store/store.entity';
 import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
@@ -22,8 +21,6 @@ export class StoreSettingsService {
   constructor(
     @InjectRepository(StoreSettings)
     private readonly storeSettingsRepository: Repository<StoreSettings>,
-    @InjectRepository(Store)
-    private readonly storeRepository: Repository<Store>,
   ) {}
 
   public async createStoreSettings(
