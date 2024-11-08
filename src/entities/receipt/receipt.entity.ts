@@ -26,19 +26,17 @@ export class Customer {
 
   @Index()
   @Column({
-    name: 'store_id',
-    type: 'int',
-    nullable: false,
+    ...FIELDS.UUID,
+    name: 'store_uuid',
   })
-  storeId: number;
+  storeUuid: string;
 
   @Index()
   @Column({
-    name: 'worker_id',
-    type: 'int',
-    nullable: false,
+    ...FIELDS.UUID,
+    name: 'worker_uuid',
   })
-  workerId: number;
+  workerUuid: string;
 
   @Index()
   @Column({
