@@ -11,5 +11,8 @@ export class StoreResponseDto {
   name: string;
 
   @Expose()
+  deltaBox: string;
+
+  @Expose()
   isDeleted: boolean;
 }

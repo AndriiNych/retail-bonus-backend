@@ -20,6 +20,13 @@ export class Store {
   name: string;
 
   @Column({
+    ...FIELDS.DECIMAL,
+    name: 'delta_box',
+    default: process.env.STORE_BOX_DELTA,
+  })
+  deltaBox: string;
+
+  @Column({
     ...FIELDS.IS_DELETED,
   })
   isDeleted: boolean;
