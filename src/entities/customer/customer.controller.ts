@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
@@ -6,6 +15,7 @@ import { CustomerDto } from './dto/customer.dto';
 import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
+import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -20,7 +30,18 @@ export class CustomerController {
 
   @Get('/:phone')
   async getCustomerByPhone(@Param() customerParamsDto: CustomerParamsDto) {
-    return await this.customerService.getCustomerByPhone(customerParamsDto);
+    return await this.customerService.getCustomerByPhoneBase(customerParamsDto);
+  }
+
+  @Patch(':phone')
+  async patchCustomerPhoneNumber(
+    @Param() customerParamsDto: CustomerParamsDto,
+    @Body() customerPhonePatchDto: CustomerPhonePatchDto,
+  ) {
+    return await this.customerService.changePhoneNumber(
+      customerParamsDto,
+      customerPhonePatchDto,
+    );
   }
 
   @Post('single')
@@ -32,8 +53,6 @@ export class CustomerController {
   async createCustomers(@Body() customers: CustomersDto) {
     return await this.customerService.createCustomers(customers);
   }
-
-  //TODO make change phone number - implement point
 
   @Put(':phone')
   async updateCustomer(

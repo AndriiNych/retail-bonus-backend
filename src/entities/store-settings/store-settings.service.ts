@@ -64,7 +64,6 @@ export class StoreSettingsService {
     return responseWrapper(result, StoreSettingsResponseDto);
   }
 
-  //TODO if present query params "start_date" then include in response record with max data <= value "start_date"
   public async getStoreSettingsByCriterial(
     storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
   ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {

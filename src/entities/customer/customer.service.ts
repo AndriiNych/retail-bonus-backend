@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 
@@ -11,6 +15,7 @@ import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wra
 import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
+import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 
 const TABLE_NAME = 'customers';
 const COLUMN_UPDATED_AT = 'updated_at';
@@ -31,12 +36,12 @@ export class CustomerService {
     return responseWrapper(result, CustomerResponseDto);
   }
 
-  public async getCustomerByPhone(
+  public async getCustomerByPhoneBase(
     customerParamsDto: CustomerParamsDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
 
-    const resultFind = await this.customerRepository.findOneBy({ phone });
+    const resultFind = await this.getCustomerByPhoneWithValidation(phone);
 
     const result = resultFind ? [resultFind] : [];
 
@@ -46,7 +51,7 @@ export class CustomerService {
   public async createCustomer(
     customerDto: CustomerDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
-    await this.validateExistenceByPhone(customerDto.phone);
+    await this.isExistCustomer(customerDto.phone);
 
     const newCustomer = this.customerRepository.create(customerDto);
 
@@ -83,7 +88,31 @@ export class CustomerService {
     const result = [];
 
     if (resultUpdate.affected === 1) {
-      result.push(await this.customerRepository.findOneBy({ phone }));
+      result.push(await this.getCustomerByPhone(phone));
+    }
+
+    return responseWrapper(result, CustomerResponseDto);
+  }
+
+  public async changePhoneNumber(
+    customerParamsDto: CustomerParamsDto,
+    customerPhonePatchDto: CustomerPhonePatchDto,
+  ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
+    const { phone } = customerParamsDto;
+    await this.getCustomerByPhoneWithValidation(phone);
+
+    const { phone: newPhone } = customerPhonePatchDto;
+    await this.isExistCustomer(newPhone);
+
+    const resultUpdate = await this.customerRepository.update(
+      { phone },
+      customerPhonePatchDto,
+    );
+
+    const result = [];
+
+    if (resultUpdate.affected === 1) {
+      result.push(await this.getCustomerByPhone(newPhone));
     }
 
     return responseWrapper(result, CustomerResponseDto);
@@ -113,7 +142,7 @@ export class CustomerService {
       customer: CustomerDto,
     ): Promise<CustomerResponseDto> => {
       const { phone } = customer;
-      const resultFind = await this.customerRepository.findOneBy({ phone });
+      const resultFind = await this.getCustomerByPhone(phone);
       if (resultFind) {
         return resultFind;
       }
@@ -129,12 +158,32 @@ export class CustomerService {
     return result;
   }
 
-  private async validateExistenceByPhone(phone: string): Promise<void> {
-    const customer = await this.customerRepository.findOneBy({ phone });
+  private async isExistCustomer(phone: string): Promise<void> {
+    const customer = await this.getCustomerByPhone(phone);
     if (customer) {
       throw new ConflictException(
         `Record with phone: ${phone} already exists.`,
       );
     }
+  }
+
+  private async getCustomerByPhoneWithValidation(
+    phone: string,
+  ): Promise<CustomerResponseDto> {
+    const customer = await this.getCustomerByPhone(phone);
+
+    if (!customer) {
+      throw new NotFoundException(
+        `Record with phone: ${phone} does not exist.`,
+      );
+    }
+
+    return customer;
+  }
+
+  private async getCustomerByPhone(
+    phone: string,
+  ): Promise<CustomerResponseDto> {
+    return await this.customerRepository.findOneBy({ phone });
   }
 }
