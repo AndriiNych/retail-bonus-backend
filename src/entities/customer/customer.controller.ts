@@ -33,6 +33,8 @@ export class CustomerController {
     return await this.customerService.createCustomers(customers);
   }
 
+  //TODO make change phone number - implement point
+
   @Put(':phone')
   async updateCustomer(
     @Param() customerParamsDto: CustomerParamsDto,

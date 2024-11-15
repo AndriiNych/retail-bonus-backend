@@ -10,6 +10,7 @@ import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
 import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
+import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
 
 const TABLE_NAME = 'store_settings';
 const COLUMN_STORE_UUID = 'store_uuid';
@@ -49,6 +50,16 @@ export class StoreSettingsService {
     }
 
     const result = resultSave ? [resultSave] : [];
+
+    return responseWrapper(result, StoreSettingsResponseDto);
+  }
+
+  public async getStoreSettingsCurrentByUuid(
+    storeSettingsCurrentQueryParamsDto: StoreSettingsCurrentQueryParamsDto,
+  ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
+    const queryParams = this.getQueryParams(storeSettingsCurrentQueryParamsDto);
+
+    const result = await this.getStoreSettingsCurrent(queryParams);
 
     return responseWrapper(result, StoreSettingsResponseDto);
   }
@@ -99,6 +110,44 @@ export class StoreSettingsService {
     }
 
     return responseWrapper(result, StoreSettingsResponseDto);
+  }
+
+  private async getStoreSettingsCurrent(queryParams): Promise<StoreSettings[]> {
+    const { storeUuid, date: targetDate } = queryParams;
+
+    let { maxDate } = await this.storeSettingsRepository
+      .createQueryBuilder('store_settings')
+      .select('MAX(store_settings.start_date)', 'maxDate')
+      .where(
+        'store_settings.store_uuid = :storeUuid AND store_settings.start_date <= :targetDate',
+        { storeUuid, targetDate },
+      )
+      .getRawOne();
+
+    if (!maxDate) {
+      maxDate = process.env.START_DATE;
+    }
+
+    const result = await this.storeSettingsRepository
+      .createQueryBuilder('store_settings')
+      .where(
+        'store_settings.store_uuid = :storeUuid AND store_settings.start_date >= :lastDate',
+        { storeUuid, lastDate: maxDate },
+      )
+      .orderBy('store_settings.start_date')
+      .getMany();
+
+    return result;
+  }
+
+  private getQueryParams(
+    storeSettingsCurrentQueryParamsDto: StoreSettingsCurrentQueryParamsDto,
+  ) {
+    const { storeUuid, date: dateQuery } = storeSettingsCurrentQueryParamsDto;
+
+    const date = dateQuery ? dateQuery : new Date();
+
+    return { storeUuid, date };
   }
 
   private getQueryByCriterial(
