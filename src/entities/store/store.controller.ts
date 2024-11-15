@@ -3,9 +3,10 @@ import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
-import { getResultObjectWithData } from '@src/utils/getResultObjectWithData';
 import { StoreParams } from './dto/store-params.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('stores')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}

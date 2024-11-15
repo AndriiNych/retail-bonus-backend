@@ -15,7 +15,9 @@ import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
 import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('store-settings')
 export class StoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}

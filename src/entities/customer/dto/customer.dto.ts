@@ -14,14 +14,25 @@ import { MSG } from '@src/utils/get.message';
 import { IsSingleObject } from '@src/utils/dto/is-single-object.dto';
 import { FIELDS_LENGTH, MAX_VALUE } from '@src/db/const-fields';
 import { IsLessThanOrEqualTo } from '@src/utils/dto/is-less-than-or-equal.dto';
+import { ApiCallbacks, ApiProperty } from '@nestjs/swagger';
+import { ApiClassProperties } from '@src/utils/api-class-properties.decorator';
 
-@IsSingleObject()
+// @IsSingleObject()
+@ApiClassProperties()
 export class CustomerDto {
+  // @ApiProperty({
+  //   type: 'string',
+  //   description: 'customer name',
+  // })
   @IsString()
   @MaxLength(FIELDS_LENGTH.NAME)
   @IsNotEmpty()
-  name?: string;
+  name: string;
 
+  // @ApiProperty({
+  //   type: 'string',
+  //   description: 'customer phone number',
+  // })
   @Matches(/^\d+$/, {
     message: MSG.ERR.VALIDATION.number('phone'),
   })

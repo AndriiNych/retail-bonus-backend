@@ -4,7 +4,9 @@ import { WorkerDto } from './dto/worker.dto';
 import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
 import { WorkerParamsDto } from './dto/worker-params.dto';
 import { WorkerUpdateDto } from './dto/worker-update.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('workers')
 export class WorkerController {
   constructor(private readonly workerService: WorkerService) {}
