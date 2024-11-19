@@ -9,6 +9,7 @@ export class Receipt {
   @Column({ ...FIELDS.NUMBER, name: 'type' })
   type: number;
 
+  @Index()
   @Column({ ...FIELDS.UUID, name: 'uuid' })
   uuid: string;
 
