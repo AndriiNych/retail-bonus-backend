@@ -2,7 +2,7 @@ import { FIELDS } from '@src/db/const-fields';
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('receipts')
-export class Customer {
+export class Receipt {
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -9,6 +9,7 @@ import { CustomerModule } from './entities/customer/customer.module';
 import { StoreModule } from './entities/store/store.module';
 import { StoreSettingsModule } from './entities/store-settings/store-settings.module';
 import { WorkerModule } from './entities/worker/worker.module';
+import { ReceiptModule } from './entities/receipt/receipt.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WorkerModule } from './entities/worker/worker.module';
     WorkerModule,
     StoreModule,
     StoreSettingsModule,
+    ReceiptModule,
   ],
 })
 export class AppModule {}
