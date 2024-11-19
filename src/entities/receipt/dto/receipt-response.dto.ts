@@ -5,13 +5,28 @@ export class Customer {
   id: number;
 
   @Expose()
+  type: number;
+
+  @Expose()
   uuid: string;
 
   @Expose()
-  numberDocument: string;
+  date: Date;
 
   @Expose()
-  dateDocument: Date;
+  returnUuid: string;
+
+  @Expose()
+  totalAmount: string;
+
+  @Expose()
+  accruedBonus: string;
+
+  @Expose()
+  spentBonus: string;
+
+  @Expose()
+  saving: string;
 
   @Expose()
   storeUuid: string;
@@ -21,12 +36,6 @@ export class Customer {
 
   @Expose()
   customerId: number;
-
-  @Expose()
-  amountDocument: string;
-
-  @Expose()
-  amountAction: string;
 
   @Expose()
   startDate: Date;

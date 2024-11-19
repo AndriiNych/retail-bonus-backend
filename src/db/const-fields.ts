@@ -40,6 +40,11 @@ export const FIELDS = {
     default: 0,
     collation: 'utf8_general_ci',
   },
+  NUMBER: {
+    type: 'int' as const,
+    default: 0,
+    nullable: true,
+  },
   PERCENT: {
     type: 'decimal' as const,
     precision: FIELDS_LENGTH.PERCENT.PRECISION,
