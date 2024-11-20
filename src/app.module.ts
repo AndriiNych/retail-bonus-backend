@@ -18,10 +18,10 @@ import { ReceiptModule } from './entities/receipt/receipt.module';
     TypeOrmModule,
     ActiveModule,
     CustomerModule,
-    WorkerModule,
+    ReceiptModule,
     StoreModule,
     StoreSettingsModule,
-    ReceiptModule,
+    WorkerModule,
   ],
 })
 export class AppModule {}
