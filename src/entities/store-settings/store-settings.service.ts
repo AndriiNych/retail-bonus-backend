@@ -79,13 +79,13 @@ export class StoreSettingsService {
   ): Promise<ResponseWrapperDto<StoreSettingsDto>> {
     const { id } = storeSettingsParamsDto;
 
-    const resultDeleted = await this.storeSettingsRepository.findOneBy({ id });
-
+    const storeSettings = await this.storeSettingsRepository.findOneBy({ id });
+    //TODO make this implementation such as delete's function in receiptService
     const result = [];
 
-    if (resultDeleted) {
+    if (storeSettings) {
       await this.storeSettingsRepository.delete({ id });
-      result.push(resultDeleted);
+      result.push(storeSettings);
     }
 
     return responseWrapper(result, StoreSettingsResponseDto);

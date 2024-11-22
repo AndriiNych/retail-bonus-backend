@@ -79,7 +79,7 @@ export class CustomerService {
     customerUpdateDto: CustomerUpdateDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
-
+    //TODO - if record not found, then create error "Not found"
     const resultUpdate = await this.customerRepository.update(
       { phone },
       customerUpdateDto,
