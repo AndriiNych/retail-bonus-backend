@@ -5,3 +5,5 @@
 //TODO in all services implement feature check isExist and create error message "not found" in delete & update functions
 
 //TODO in receiptService make check that startData >= currentDate, and only then do delete/update
+
+//TODO Change internal private methods "get" to "fetch"

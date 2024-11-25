@@ -30,10 +30,10 @@ export class ReceiptDto {
   @IsDate()
   date: Date;
 
+  //TODO implement check that if type = 1, then returnUuid is blank, and if type = 2, than returnUuid not blank
   @IsString()
-  @IsNotEmpty()
   @MaxLength(FIELDS_LENGTH.UUID)
-  returnUuid: string;
+  returnUuid?: string;
 
   @IsString()
   @Matches(/^\d+(\.\d{1,2})?$/, {

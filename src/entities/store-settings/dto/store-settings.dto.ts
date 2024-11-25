@@ -1,4 +1,4 @@
-import { MAX_VALUE } from '@src/db/const-fields';
+import { FIELDS_LENGTH, MAX_VALUE } from '@src/db/const-fields';
 import { IsLessThanOrEqualTo } from '@src/utils/dto/is-less-than-or-equal.dto';
 import { Type } from 'class-transformer';
 import {
@@ -13,7 +13,7 @@ import {
 export class StoreSettingsDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(36)
+  @MaxLength(FIELDS_LENGTH.UUID)
   storeUuid: string;
 
   @IsNotEmpty()

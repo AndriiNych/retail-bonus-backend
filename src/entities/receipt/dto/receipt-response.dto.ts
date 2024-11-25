@@ -1,51 +1,10 @@
+import { OmitType } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { ReceiptResponseBaseDto } from './receipt-response-base.dto';
 
-export class ReceiptResponseDto {
+export class ReceiptResponseDto extends OmitType(ReceiptResponseBaseDto, [
+  'customerId',
+] as const) {
   @Expose()
-  id: number;
-
-  @Expose()
-  type: number;
-
-  @Expose()
-  uuid: string;
-
-  @Expose()
-  date: Date;
-
-  @Expose()
-  returnUuid: string;
-
-  @Expose()
-  totalAmount: string;
-
-  @Expose()
-  accruedBonus: string;
-
-  @Expose()
-  spentBonus: string;
-
-  @Expose()
-  saving: string;
-
-  @Expose()
-  storeUuid: string;
-
-  @Expose()
-  workerUuid: string;
-
-  @Expose()
-  customerId: number;
-
-  @Expose()
-  startDate: Date;
-
-  @Expose()
-  endDate: Date;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
+  customerPhone: string;
 }

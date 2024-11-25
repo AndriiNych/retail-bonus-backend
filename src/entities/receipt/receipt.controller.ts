@@ -20,34 +20,36 @@ import { ReceiptParamsDto } from './dto/receipt-params.dto';
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 
-  @Delete('/:uuid')
-  async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
-    return await this.receiptService.deleteReceipt(receiptParamsDto);
-  }
+  // @Delete('/:uuid')
+  // async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
+  //   return await this.receiptService.deleteReceipt(receiptParamsDto);
+  // }
 
-  @Get('/')
-  async getAllReceipts() {
-    return { data: 'test' };
-  }
+  // @Get('/')
+  // async getAllReceipts() {
+  //   return { data: 'test' };
+  // }
 
-  @Get('/:uuid')
-  async getReceiptsByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
-    return {};
-  }
+  // @Get('/uuid/:uuid')
+  // async getReceiptsByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
+  //   return await this.receiptService.getReceiptByUuid(receiptParamsDto);
+  // }
+
+  //TODO implement check that if type = 1, then returnUuid is blank, and if type = 2, than returnUuid not blank
 
   @Post('/')
   async createReceipt(@Body() receiptDto: ReceiptDto) {
     return await this.receiptService.createReceipt(receiptDto);
   }
 
-  @Put('/:uuid')
-  async updateReceiptByUuid(
-    @Param() receiptResponseDto: ReceiptResponseDto,
-    @Body() receiptUpdateDto: ReceiptUpdateDto,
-  ) {
-    return await this.receiptService.updateReceiptByUuid(
-      receiptResponseDto,
-      receiptUpdateDto,
-    );
-  }
+  // @Put('/:uuid')
+  // async updateReceiptByUuid(
+  //   @Param() receiptParamsDto: ReceiptParamsDto,
+  //   @Body() receiptUpdateDto: ReceiptUpdateDto,
+  // ) {
+  //   return await this.receiptService.updateReceiptByUuid(
+  //     receiptParamsDto,
+  //     receiptUpdateDto,
+  //   );
+  // }
 }

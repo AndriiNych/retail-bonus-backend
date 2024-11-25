@@ -12,12 +12,16 @@ import { ReceiptResponseDto } from './dto/receipt-response.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { ReceiptParamsDto } from './dto/receipt-params.dto';
 import { ReceiptUpdateDto } from './dto/receipt-update.dto';
+import { CustomerService } from '../customer/customer.service';
+import { CustomerParamsDto } from '../customer/dto/customer-params.dto';
+import { ReceiptResponseBaseDto } from './dto/receipt-response-base.dto';
 
 @Injectable()
 export class ReceiptService {
   constructor(
     @InjectRepository(Receipt)
     private readonly receiptRepository: Repository<Receipt>,
+    private readonly customerService: CustomerService,
   ) {}
 
   public async createReceipt(
@@ -25,54 +29,75 @@ export class ReceiptService {
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
     await this.isExistReceipt(receiptDto.uuid);
 
+    const customerId = await this.fetchCustomerIdByPhone(
+      receiptDto.customerPhone,
+    );
+
     const newReceipt = this.receiptRepository.create(receiptDto);
+
+    newReceipt.customerId = customerId;
 
     const resultSave = await this.receiptRepository.save(newReceipt);
 
-    const result = resultSave ? [resultSave] : [];
+    const resultTransform =
+      await this.transformCustomerIdToPhoneNumber(resultSave);
+
+    const result = resultTransform ? [resultTransform] : [];
 
     return responseWrapper(result, ReceiptResponseDto);
   }
 
-  public async deleteReceipt(
-    receiptParamsDtoDto: ReceiptParamsDto,
-  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-    const { uuid } = receiptParamsDtoDto;
+  // public async deleteReceipt(
+  //   receiptParamsDto: ReceiptParamsDto,
+  // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+  //   const { uuid } = receiptParamsDto;
 
-    const receipt = await this.getReceiptByUuidWithValidation(uuid);
+  //   const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
 
-    await this.receiptRepository.delete({ uuid });
-    const result = [receipt];
+  //   await this.receiptRepository.delete({ uuid });
+  //   const result = [receipt];
 
-    return responseWrapper(result, ReceiptResponseDto);
-  }
+  //   return responseWrapper(result, ReceiptResponseDto);
+  // }
 
-  public async updateReceiptByUuid(
-    receiptParamsDto: ReceiptParamsDto,
-    receiptUpdateDto: ReceiptUpdateDto,
-  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-    const { uuid } = receiptParamsDto;
+  // public async getReceiptByUuid(
+  //   receiptParamsDto: ReceiptParamsDto,
+  // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+  //   const { uuid } = receiptParamsDto;
 
-    await this.getReceiptByUuidWithValidation(uuid);
+  //   const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
 
-    const resultUpdate = await this.receiptRepository.update(
-      { uuid },
-      receiptUpdateDto,
-    );
+  //   const result = receipt ? [receipt] : [];
 
-    const result = [];
+  //   return responseWrapper(result, ReceiptResponseDto);
+  // }
 
-    if (resultUpdate.affected === 1) {
-      result.push(await this.getReceiptByUuid(uuid));
-    }
+  // public async updateReceiptByUuid(
+  //   receiptParamsDto: ReceiptParamsDto,
+  //   receiptUpdateDto: ReceiptUpdateDto,
+  // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+  //   const { uuid } = receiptParamsDto;
 
-    return responseWrapper(result, ReceiptResponseDto);
-  }
+  //   await this.fetchReceiptByUuidWithValidation(uuid);
 
-  private async getReceiptByUuidWithValidation(
+  //   const resultUpdate = await this.receiptRepository.update(
+  //     { uuid },
+  //     receiptUpdateDto,
+  //   );
+
+  //   const result = [];
+
+  //   if (resultUpdate.affected === 1) {
+  //     result.push(await this.fetchReceiptByUuid(uuid));
+  //   }
+
+  //   return responseWrapper(result, ReceiptResponseDto);
+  // }
+
+  private async fetchReceiptByUuidWithValidation(
     uuid: string,
-  ): Promise<ReceiptResponseDto> {
-    const receipt = await this.getReceiptByUuid(uuid);
+  ): Promise<ReceiptResponseBaseDto> {
+    const receipt = await this.fetchReceiptByUuid(uuid);
 
     if (!receipt) {
       throw new NotFoundException(`Record with uuid ${uuid} does not exist.`);
@@ -81,14 +106,39 @@ export class ReceiptService {
     return receipt;
   }
 
-  private async getReceiptByUuid(uuid: string): Promise<ReceiptResponseDto> {
+  private async fetchReceiptByUuid(
+    uuid: string,
+  ): Promise<ReceiptResponseBaseDto> {
     return await this.receiptRepository.findOneBy({ uuid });
   }
 
   private async isExistReceipt(uuid: string): Promise<void> {
-    const receipt = this.getReceiptByUuid(uuid);
+    const receipt = await this.fetchReceiptByUuid(uuid);
     if (receipt) {
       throw new ConflictException(`Record with uuid: ${uuid} already exists.`);
     }
+  }
+
+  private async fetchCustomerIdByPhone(phone: string): Promise<number> {
+    const customerParamsDto = new CustomerParamsDto();
+    customerParamsDto.phone = phone;
+
+    const { data } =
+      await this.customerService.getCustomerByPhoneBase(customerParamsDto);
+
+    return data[0].id;
+  }
+
+  private async transformCustomerIdToPhoneNumber(
+    receipt: Receipt,
+  ): Promise<ReceiptResponseDto> {
+    const { customerId, ...newReceipt } = receipt;
+
+    const { phone: customerPhone } =
+      await this.customerService.getCustomerById(customerId);
+
+    const result = { ...newReceipt, customerPhone };
+
+    return result;
   }
 }

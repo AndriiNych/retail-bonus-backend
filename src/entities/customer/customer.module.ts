@@ -10,5 +10,6 @@ import { IsSingleObjectConstraint } from '@src/utils/dto/is-single-object.dto';
   imports: [TypeOrmModule.forFeature([Customer])],
   controllers: [CustomerController],
   providers: [CustomerService, IsSingleObjectConstraint],
+  exports: [CustomerService],
 })
 export class CustomerModule {}

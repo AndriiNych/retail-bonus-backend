@@ -16,6 +16,7 @@ import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
+import { NotFoundError } from 'rxjs';
 
 const TABLE_NAME = 'customers';
 const COLUMN_UPDATED_AT = 'updated_at';
@@ -36,12 +37,22 @@ export class CustomerService {
     return responseWrapper(result, CustomerResponseDto);
   }
 
+  public async getCustomerById(id: number): Promise<CustomerDto> {
+    const customer = await this.customerRepository.findOneBy({ id });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
+    }
+
+    return customer;
+  }
+
   public async getCustomerByPhoneBase(
     customerParamsDto: CustomerParamsDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
 
-    const resultFind = await this.getCustomerByPhoneWithValidation(phone);
+    const resultFind = await this.fetchCustomerByPhoneWithValidation(phone);
 
     const result = resultFind ? [resultFind] : [];
 
@@ -88,7 +99,7 @@ export class CustomerService {
     const result = [];
 
     if (resultUpdate.affected === 1) {
-      result.push(await this.getCustomerByPhone(phone));
+      result.push(await this.fetchCustomerByPhone(phone));
     }
 
     return responseWrapper(result, CustomerResponseDto);
@@ -99,7 +110,7 @@ export class CustomerService {
     customerPhonePatchDto: CustomerPhonePatchDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
-    await this.getCustomerByPhoneWithValidation(phone);
+    await this.fetchCustomerByPhoneWithValidation(phone);
 
     const { phone: newPhone } = customerPhonePatchDto;
     await this.isExistCustomer(newPhone);
@@ -112,7 +123,7 @@ export class CustomerService {
     const result = [];
 
     if (resultUpdate.affected === 1) {
-      result.push(await this.getCustomerByPhone(newPhone));
+      result.push(await this.fetchCustomerByPhone(newPhone));
     }
 
     return responseWrapper(result, CustomerResponseDto);
@@ -142,7 +153,7 @@ export class CustomerService {
       customer: CustomerDto,
     ): Promise<CustomerResponseDto> => {
       const { phone } = customer;
-      const resultFind = await this.getCustomerByPhone(phone);
+      const resultFind = await this.fetchCustomerByPhone(phone);
       if (resultFind) {
         return resultFind;
       }
@@ -159,29 +170,29 @@ export class CustomerService {
   }
 
   private async isExistCustomer(phone: string): Promise<void> {
-    const customer = await this.getCustomerByPhone(phone);
+    const customer = await this.fetchCustomerByPhone(phone);
     if (customer) {
       throw new ConflictException(
-        `Record with phone: ${phone} already exists.`,
+        `Customer with phone: ${phone} already exists.`,
       );
     }
   }
 
-  private async getCustomerByPhoneWithValidation(
+  private async fetchCustomerByPhoneWithValidation(
     phone: string,
   ): Promise<CustomerResponseDto> {
-    const customer = await this.getCustomerByPhone(phone);
+    const customer = await this.fetchCustomerByPhone(phone);
 
     if (!customer) {
       throw new NotFoundException(
-        `Record with phone: ${phone} does not exist.`,
+        `Customer with phone: ${phone} does not exist.`,
       );
     }
 
     return customer;
   }
 
-  private async getCustomerByPhone(
+  private async fetchCustomerByPhone(
     phone: string,
   ): Promise<CustomerResponseDto> {
     return await this.customerRepository.findOneBy({ phone });
