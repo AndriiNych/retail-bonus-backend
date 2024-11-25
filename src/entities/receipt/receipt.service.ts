@@ -60,17 +60,20 @@ export class ReceiptService {
   //   return responseWrapper(result, ReceiptResponseDto);
   // }
 
-  // public async getReceiptByUuid(
-  //   receiptParamsDto: ReceiptParamsDto,
-  // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-  //   const { uuid } = receiptParamsDto;
+  public async getReceiptByUuid(
+    receiptParamsDto: ReceiptParamsDto,
+  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+    const { uuid } = receiptParamsDto;
 
-  //   const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
+    const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
 
-  //   const result = receipt ? [receipt] : [];
+    const resultTransform =
+      await this.transformCustomerIdToPhoneNumber(receipt);
 
-  //   return responseWrapper(result, ReceiptResponseDto);
-  // }
+    const result = resultTransform ? [resultTransform] : [];
+
+    return responseWrapper(result, ReceiptResponseDto);
+  }
 
   // public async updateReceiptByUuid(
   //   receiptParamsDto: ReceiptParamsDto,

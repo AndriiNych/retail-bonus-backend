@@ -30,10 +30,10 @@ export class ReceiptController {
   //   return { data: 'test' };
   // }
 
-  // @Get('/uuid/:uuid')
-  // async getReceiptsByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
-  //   return await this.receiptService.getReceiptByUuid(receiptParamsDto);
-  // }
+  @Get('/uuid/:uuid')
+  async getReceiptsByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
+    return await this.receiptService.getReceiptByUuid(receiptParamsDto);
+  }
 
   //TODO implement check that if type = 1, then returnUuid is blank, and if type = 2, than returnUuid not blank
 
