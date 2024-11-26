@@ -20,10 +20,10 @@ import { ReceiptParamsDto } from './dto/receipt-params.dto';
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 
-  // @Delete('/:uuid')
-  // async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
-  //   return await this.receiptService.deleteReceipt(receiptParamsDto);
-  // }
+  @Delete('/uuid/:uuid')
+  async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
+    return await this.receiptService.deleteReceipt(receiptParamsDto);
+  }
 
   // @Get('/')
   // async getAllReceipts() {
@@ -42,14 +42,14 @@ export class ReceiptController {
     return await this.receiptService.createReceipt(receiptDto);
   }
 
-  // @Put('/:uuid')
-  // async updateReceiptByUuid(
-  //   @Param() receiptParamsDto: ReceiptParamsDto,
-  //   @Body() receiptUpdateDto: ReceiptUpdateDto,
-  // ) {
-  //   return await this.receiptService.updateReceiptByUuid(
-  //     receiptParamsDto,
-  //     receiptUpdateDto,
-  //   );
-  // }
+  @Put('/uuid/:uuid')
+  async updateReceiptByUuid(
+    @Param() receiptParamsDto: ReceiptParamsDto,
+    @Body() receiptUpdateDto: ReceiptUpdateDto,
+  ) {
+    return await this.receiptService.updateReceiptByUuid(
+      receiptParamsDto,
+      receiptUpdateDto,
+    );
+  }
 }
