@@ -10,6 +10,7 @@ import { StoreModule } from './entities/store/store.module';
 import { StoreSettingsModule } from './entities/store-settings/store-settings.module';
 import { WorkerModule } from './entities/worker/worker.module';
 import { ReceiptModule } from './entities/receipt/receipt.module';
+import { ReceiptProgressModule } from './entities/receipt-progress/receipt-progress.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ReceiptModule } from './entities/receipt/receipt.module';
     ActiveModule,
     CustomerModule,
     ReceiptModule,
+    ReceiptProgressModule,
     StoreModule,
     StoreSettingsModule,
     WorkerModule,
