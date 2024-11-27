@@ -47,6 +47,18 @@ export class CustomerService {
     return customer;
   }
 
+  public async getCustomerResponseById(
+    id: number,
+  ): Promise<CustomerResponseDto> {
+    const customer = await this.customerRepository.findOneBy({ id });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
+    }
+
+    return customer;
+  }
+
   public async getCustomerByPhoneBase(
     customerParamsDto: CustomerParamsDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {

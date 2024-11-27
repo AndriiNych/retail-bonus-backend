@@ -74,6 +74,7 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 
+  /* updateReceiptByUuid: this method is disabled because the check should not change
   public async updateReceiptByUuid(
     receiptParamsDto: ReceiptParamsDto,
     receiptUpdateDto: ReceiptUpdateDto,
@@ -101,6 +102,7 @@ export class ReceiptService {
 
     return responseWrapper(result, ReceiptResponseDto);
   }
+*/
 
   private async fetchReceiptByUuidWithValidation(
     uuid: string,

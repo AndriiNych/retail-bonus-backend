@@ -11,6 +11,7 @@ import { StoreSettingsModule } from './entities/store-settings/store-settings.mo
 import { WorkerModule } from './entities/worker/worker.module';
 import { ReceiptModule } from './entities/receipt/receipt.module';
 import { ReceiptProgressModule } from './entities/receipt-progress/receipt-progress.module';
+import { RegisterBalansModule } from './entities/register-balans/register-balans.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ReceiptProgressModule } from './entities/receipt-progress/receipt-progr
     StoreModule,
     StoreSettingsModule,
     WorkerModule,
+    RegisterBalansModule,
   ],
 })
 export class AppModule {}

@@ -42,14 +42,15 @@ export class ReceiptController {
     return await this.receiptService.createReceipt(receiptDto);
   }
 
-  @Put('/uuid/:uuid')
-  async updateReceiptByUuid(
-    @Param() receiptParamsDto: ReceiptParamsDto,
-    @Body() receiptUpdateDto: ReceiptUpdateDto,
-  ) {
-    return await this.receiptService.updateReceiptByUuid(
-      receiptParamsDto,
-      receiptUpdateDto,
-    );
-  }
+  // this method is disabled because the check should not change
+  // @Put('/uuid/:uuid')
+  // async updateReceiptByUuid(
+  //   @Param() receiptParamsDto: ReceiptParamsDto,
+  //   @Body() receiptUpdateDto: ReceiptUpdateDto,
+  // ) {
+  //   return await this.receiptService.updateReceiptByUuid(
+  //     receiptParamsDto,
+  //     receiptUpdateDto,
+  //   );
+  // }
 }
