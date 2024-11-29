@@ -45,7 +45,7 @@ export class ReceiptDto {
   @Matches(/^\d+(\.\d{1,2})?$/, {
     message: MSG.ERR.VALIDATION.decimal('accruedBonus'),
   })
-  accruedBonus: string;
+  accuredBonus: string;
 
   @IsString()
   @Matches(/^\d+(\.\d{1,2})?$/, {

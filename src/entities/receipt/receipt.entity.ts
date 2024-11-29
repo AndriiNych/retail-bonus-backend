@@ -24,7 +24,7 @@ export class Receipt {
   totalAmount: string;
 
   @Column({ ...FIELDS.DECIMAL, name: 'accured_bonus' })
-  accruedBonus: string;
+  accuredBonus: string;
 
   @Column({ ...FIELDS.DECIMAL, name: 'spent_bonus' })
   spentBonus: string;

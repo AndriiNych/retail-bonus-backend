@@ -20,7 +20,7 @@ export class ReceiptResponseBaseDto {
   totalAmount: string;
 
   @Expose()
-  accruedBonus: string;
+  accuredBonus: string;
 
   @Expose()
   spentBonus: string;

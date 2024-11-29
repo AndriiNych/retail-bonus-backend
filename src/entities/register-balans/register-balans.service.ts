@@ -7,6 +7,7 @@ import { RegisterBalans } from './register-balans.entity';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
+import { MATH } from '@src/utils/math.decimal';
 
 @Injectable()
 export class RegisterBalansService {
@@ -30,17 +31,95 @@ export class RegisterBalansService {
   public async CommitReceiptToRegisterBalans(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<CustomerResponseDto> {
-    const { uuid, customerId, accruedBonus, spentBonus } =
+    const { uuid, customerId, accuredBonus, spentBonus } =
       receiptResponseBaseDto;
 
     await this.checkBeforeCommit(uuid);
 
-    // transform Receipt to RegisterBalans: accuredBonus &  spentBonus
-    // and createRecord or update
+    if (accuredBonus) {
+      this.saveRegisterBalans(receiptResponseBaseDto, accuredBonus);
+    }
+
+    if (spentBonus) {
+      this.saveRegisterBalans(receiptResponseBaseDto, spentBonus);
+      this.addSpentBonusFromCustomer(customerId, spentBonus);
+    }
 
     const result = await this.fetchCustomerById(customerId);
 
     return result;
+  }
+
+  private async deleteSpentBonusFromCustomer(
+    customerId: number,
+    spentBonus: string,
+  ): Promise<CustomerResponseDto> {
+    let currentCustomer = await this.fetchCustomerById(customerId);
+
+    if (parseFloat(spentBonus) !== 0) {
+      currentCustomer.amountBonus = MATH.DECIMAL.subtract(
+        currentCustomer.amountBonus,
+        spentBonus,
+      );
+      const updatedCustomerResponse = (
+        await this.customerService.updateCustomerByPhone(
+          currentCustomer,
+          currentCustomer,
+        )
+      ).data[0];
+      currentCustomer = { ...updatedCustomerResponse };
+    }
+
+    return currentCustomer;
+  }
+
+  private async addSpentBonusFromCustomer(
+    customerId: number,
+    spentBonus: string,
+  ): Promise<CustomerResponseDto> {
+    let currentCustomer = await this.fetchCustomerById(customerId);
+
+    if (parseFloat(spentBonus) !== 0) {
+      currentCustomer.amountBonus = MATH.DECIMAL.add(
+        currentCustomer.amountBonus,
+        spentBonus,
+      );
+      const updatedCustomerResponse = (
+        await this.customerService.updateCustomerByPhone(
+          currentCustomer,
+          currentCustomer,
+        )
+      ).data[0];
+      currentCustomer = { ...updatedCustomerResponse };
+    }
+
+    return currentCustomer;
+  }
+
+  private async saveRegisterBalans(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    bonus: string,
+  ): Promise<RegisterBalansResponseDto> {
+    const newRegisterBalans = this.transformReceiptToRegisterBalans(
+      receiptResponseBaseDto,
+      bonus,
+    );
+
+    const savedRegisterBalans =
+      await this.registerBalansRepository.save(newRegisterBalans);
+
+    return savedRegisterBalans;
+  }
+
+  private transformReceiptToRegisterBalans(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    bonus: string,
+  ): RegisterBalansResponseDto {
+    const newRegisterBalans = this.registerBalansRepository.create(
+      receiptResponseBaseDto,
+    );
+    newRegisterBalans.bonus = bonus;
+    return newRegisterBalans;
   }
 
   private async checkBeforeCommit(documentUuid: string): Promise<void> {
