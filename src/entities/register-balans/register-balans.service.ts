@@ -10,6 +10,53 @@ import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLES } from '@src/db/const-tables';
+import { plainToInstance } from 'class-transformer';
+import {
+  RegisterBalansAccuredBonusTransformDto,
+  RegisterBalansSpentBonusTransformDto,
+} from './dto/register-balans.transform.dto';
+
+enum ActiveType {
+  Future = 0,
+  Active = 1,
+  Close = 99,
+}
+
+enum DocumentType {
+  Receipt = 1,
+  ReceiptForReturn = 2,
+  AddBonus = 11,
+  RemoveBonus = 12,
+  SpentBonus = 22,
+}
+
+const RegisterBalansTypeMap: Record<
+  DocumentType,
+  { activeType: ActiveType; dtoClass: new () => any }
+> = {
+  [DocumentType.Receipt]: {
+    activeType: ActiveType.Future,
+    dtoClass: RegisterBalansAccuredBonusTransformDto,
+  },
+  //
+  [DocumentType.ReceiptForReturn]: {
+    activeType: ActiveType.Future,
+    dtoClass: RegisterBalansAccuredBonusTransformDto,
+  },
+  [DocumentType.AddBonus]: {
+    activeType: ActiveType.Future,
+    dtoClass: RegisterBalansAccuredBonusTransformDto,
+  },
+  [DocumentType.RemoveBonus]: {
+    activeType: ActiveType.Future,
+    dtoClass: RegisterBalansAccuredBonusTransformDto,
+  },
+  //
+  [DocumentType.SpentBonus]: {
+    activeType: ActiveType.Close,
+    dtoClass: RegisterBalansSpentBonusTransformDto,
+  },
+};
 
 @Injectable()
 export class RegisterBalansService {
@@ -39,12 +86,19 @@ export class RegisterBalansService {
     await this.checkBeforeCommit(uuid);
 
     if (accuredBonus) {
-      await this.saveRegisterBalans(receiptResponseBaseDto, accuredBonus);
+      await this.saveRegisterBalans(
+        receiptResponseBaseDto,
+        DocumentType.Receipt,
+      );
     }
 
     if (spentBonus) {
-      await this.saveRegisterBalans(receiptResponseBaseDto, spentBonus);
+      await this.saveRegisterBalans(
+        receiptResponseBaseDto,
+        DocumentType.SpentBonus,
+      );
       await this.deleteSpentBonusFromCustomer(customerId, spentBonus);
+      //TODO to create a function that will use the FIFO method to distribute the withdrawn amount according to the available bonus accruals
     }
 
     const result = await this.fetchCustomerById(customerId);
@@ -106,6 +160,20 @@ export class RegisterBalansService {
 
   private async saveRegisterBalans(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
+    documentType: DocumentType,
+  ): Promise<RegisterBalansResponseDto> {
+    const newRegisterBalans = this.transformReceiptToRegisterBalans(
+      RegisterBalansTypeMap[documentType].dtoClass,
+      receiptResponseBaseDto,
+      documentType,
+    );
+
+    return await this.registerBalansRepository.save(newRegisterBalans);
+  }
+
+  /*
+  private async saveRegisterBalans(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
     bonus: string,
   ): Promise<RegisterBalansResponseDto> {
     const newRegisterBalans = this.transformReceiptToRegisterBalans(
@@ -118,7 +186,44 @@ export class RegisterBalansService {
 
     return savedRegisterBalans;
   }
+*/
 
+  private transformReceiptToRegisterBalans<T>(
+    responseDtoClass: new () => T,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    // activeType: ActiveType,
+    documentType: DocumentType,
+  ): RegisterBalansDto {
+    const resultPlain = plainToInstance(
+      responseDtoClass,
+      receiptResponseBaseDto,
+      { strategy: 'excludeAll' },
+    );
+
+    let activeType: ActiveType;
+    switch (documentType) {
+      case DocumentType.AddBonus:
+      case DocumentType.RemoveBonus:
+        activeType = ActiveType.Future;
+        break;
+      case DocumentType.SpentBonus:
+        activeType = ActiveType.Close;
+        break;
+      case DocumentType.Receipt:
+      case DocumentType.ReceiptForReturn:
+        activeType = ActiveType.Future;
+        break;
+    }
+
+    const resultDto = { ...resultPlain, activeType, documentType };
+
+    const result = plainToInstance(RegisterBalansDto, resultDto);
+    console.log(result);
+
+    return result;
+  }
+
+  /*
   private transformReceiptToRegisterBalans(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     bonus: string,
@@ -138,12 +243,10 @@ export class RegisterBalansService {
       documentReturnUuid,
     };
 
-    console.log(newRegisterBalans);
-
     newRegisterBalans.bonus = bonus;
     return newRegisterBalans;
   }
-
+*/
   private async checkBeforeCommit(documentUuid: string): Promise<void> {
     const registerBalans = await this.registerBalansRepository.findOneBy({
       documentUuid,

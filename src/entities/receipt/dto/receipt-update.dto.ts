@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ReceiptDto } from './receipt.dto';
-import { OmitType } from '@nestjs/swagger';
+import { OmitType } from '@nestjs/mapped-types';
 
 export class PrepareReceiptUpdateDtp extends OmitType(ReceiptDto, [
   'uuid',
