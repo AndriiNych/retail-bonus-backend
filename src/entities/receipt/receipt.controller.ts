@@ -13,10 +13,11 @@ import { ReceiptDto } from './dto/receipt.dto';
 import { ReceiptResponseDto } from './dto/receipt-response.dto';
 import { ReceiptUpdateDto } from './dto/receipt-update.dto';
 import { ReceiptParamsDto } from './dto/receipt-params.dto';
+import { TABLES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@ApiTags('Receipts')
-@Controller('receipts')
+@ApiTags(TABLES.receipt)
+@Controller(TABLES.receipt)
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 

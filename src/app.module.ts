@@ -20,12 +20,12 @@ import { RegisterBalansModule } from './entities/register-balans/register-balans
     TypeOrmModule,
     ActiveModule,
     CustomerModule,
+    RegisterBalansModule,
     ReceiptModule,
     ReceiptProgressModule,
     StoreModule,
     StoreSettingsModule,
     WorkerModule,
-    RegisterBalansModule,
   ],
 })
 export class AppModule {}

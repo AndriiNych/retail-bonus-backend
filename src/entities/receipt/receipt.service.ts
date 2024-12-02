@@ -15,6 +15,9 @@ import { ReceiptUpdateDto } from './dto/receipt-update.dto';
 import { CustomerService } from '../customer/customer.service';
 import { CustomerParamsDto } from '../customer/dto/customer-params.dto';
 import { ReceiptResponseBaseDto } from './dto/receipt-response-base.dto';
+import { RegisterBalansService } from '../register-balans/register-balans.service';
+import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
+import { TABLES } from '@src/db/const-tables';
 
 @Injectable()
 export class ReceiptService {
@@ -22,11 +25,13 @@ export class ReceiptService {
     @InjectRepository(Receipt)
     private readonly receiptRepository: Repository<Receipt>,
     private readonly customerService: CustomerService,
+    private readonly registeBalansService: RegisterBalansService,
   ) {}
 
   public async createReceipt(
     receiptDto: ReceiptDto,
-  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+  ): Promise<Record<string, any[]>> {
+    // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
     await this.isExistReceipt(receiptDto.uuid);
 
     const newReceipt =
@@ -39,7 +44,16 @@ export class ReceiptService {
 
     const result = resultTransform ? [resultTransform] : [];
 
-    return responseWrapper(result, ReceiptResponseDto);
+    const resultReceipt = wrapperResponseEntity(
+      result,
+      ReceiptResponseDto,
+      TABLES.receipt,
+    );
+
+    const resultCustomer =
+      await this.registeBalansService.CommitReceiptToRegisterBalans(resultSave);
+
+    return { ...resultReceipt, ...resultCustomer };
   }
 
   public async deleteReceipt(

@@ -10,8 +10,8 @@ import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { WorkerParamsDto } from './dto/worker-params.dto';
 import { WorkerUpdateDto } from './dto/worker-update.dto';
 import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
+import { TABLES } from '@src/db/const-tables';
 
-const TABLE_NAME = 'workers';
 const COLUMN_ID = 'id';
 const COLUMN_UUID = 'uuid';
 const COLUMN_STORE_UUID = 'store_uuid';
@@ -71,27 +71,27 @@ export class WorkerService {
   ): SelectQueryBuilder<Worker> {
     const { id, uuid, storeUuid, name } = workerQueryParamsDto;
 
-    const query = this.workerRepository.createQueryBuilder(TABLE_NAME);
+    const query = this.workerRepository.createQueryBuilder(TABLES.worker);
 
     if (id) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_ID} = :${COLUMN_ID}`, { id });
+      query.andWhere(`${TABLES.worker}.${COLUMN_ID} = :${COLUMN_ID}`, { id });
     }
 
     if (uuid) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_UUID} = :${COLUMN_UUID}`, {
+      query.andWhere(`${TABLES.worker}.${COLUMN_UUID} = :${COLUMN_UUID}`, {
         uuid,
       });
     }
 
     if (storeUuid) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
+        `${TABLES.worker}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
         { store_uuid: storeUuid },
       );
     }
 
     if (name) {
-      query.andWhere(`${TABLE_NAME}.${COLUMN_NAME} LIKE :${COLUMN_NAME}`, {
+      query.andWhere(`${TABLES.worker}.${COLUMN_NAME} LIKE :${COLUMN_NAME}`, {
         name: `%${name}%`,
       });
     }

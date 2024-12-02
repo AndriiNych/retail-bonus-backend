@@ -8,6 +8,8 @@ import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
+import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
+import { TABLES } from '@src/db/const-tables';
 
 @Injectable()
 export class RegisterBalansService {
@@ -30,24 +32,30 @@ export class RegisterBalansService {
 
   public async CommitReceiptToRegisterBalans(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
-  ): Promise<CustomerResponseDto> {
+  ): Promise<Record<string, CustomerResponseDto[]>> {
     const { uuid, customerId, accuredBonus, spentBonus } =
       receiptResponseBaseDto;
 
     await this.checkBeforeCommit(uuid);
 
     if (accuredBonus) {
-      this.saveRegisterBalans(receiptResponseBaseDto, accuredBonus);
+      await this.saveRegisterBalans(receiptResponseBaseDto, accuredBonus);
     }
 
     if (spentBonus) {
-      this.saveRegisterBalans(receiptResponseBaseDto, spentBonus);
-      this.addSpentBonusFromCustomer(customerId, spentBonus);
+      await this.saveRegisterBalans(receiptResponseBaseDto, spentBonus);
+      await this.deleteSpentBonusFromCustomer(customerId, spentBonus);
     }
 
     const result = await this.fetchCustomerById(customerId);
 
-    return result;
+    const resultEnd = wrapperResponseEntity(
+      [result],
+      CustomerResponseDto,
+      TABLES.customer,
+    );
+
+    return resultEnd;
   }
 
   private async deleteSpentBonusFromCustomer(
@@ -115,9 +123,23 @@ export class RegisterBalansService {
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     bonus: string,
   ): RegisterBalansResponseDto {
-    const newRegisterBalans = this.registerBalansRepository.create(
-      receiptResponseBaseDto,
-    );
+    const {
+      id,
+      uuid: documentUuid,
+      returnUuid: documentReturnUuid,
+      ...baseParams
+    } = receiptResponseBaseDto;
+
+    const newRegisterBalansBase =
+      this.registerBalansRepository.create(baseParams);
+    const newRegisterBalans = {
+      ...newRegisterBalansBase,
+      documentUuid,
+      documentReturnUuid,
+    };
+
+    console.log(newRegisterBalans);
+
     newRegisterBalans.bonus = bonus;
     return newRegisterBalans;
   }

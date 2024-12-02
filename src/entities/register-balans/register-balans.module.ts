@@ -7,5 +7,6 @@ import { CustomerModule } from '../customer/customer.module';
 @Module({
   imports: [TypeOrmModule.forFeature([RegisterBalans]), CustomerModule],
   providers: [RegisterBalansService],
+  exports: [RegisterBalansService],
 })
 export class RegisterBalansModule {}

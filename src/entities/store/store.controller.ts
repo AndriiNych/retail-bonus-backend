@@ -5,9 +5,10 @@ import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
 import { StoreParams } from './dto/store-params.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { TABLES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@Controller('stores')
+@Controller(TABLES.store)
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 

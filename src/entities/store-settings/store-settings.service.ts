@@ -11,8 +11,8 @@ import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
 import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
+import { TABLES } from '@src/db/const-tables';
 
-const TABLE_NAME = 'store_settings';
 const COLUMN_STORE_UUID = 'store_uuid';
 const COLUMN_START_DATE = 'start_date';
 const COLUMN_END_DATE = 'end_date';
@@ -158,11 +158,13 @@ export class StoreSettingsService {
       end_date,
     } = storeSettingsQueryParamsDto;
 
-    const query = this.storeSettingsRepository.createQueryBuilder(TABLE_NAME);
+    const query = this.storeSettingsRepository.createQueryBuilder(
+      TABLES.store_settings,
+    );
 
     if (store_uuid) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
+        `${TABLES.store_settings}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
         {
           store_uuid,
         },
@@ -171,7 +173,7 @@ export class StoreSettingsService {
 
     if (start_date) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_START_DATE} >= :${COLUMN_START_DATE}`,
+        `${TABLES.store_settings}.${COLUMN_START_DATE} >= :${COLUMN_START_DATE}`,
         {
           start_date,
         },
@@ -180,7 +182,7 @@ export class StoreSettingsService {
 
     if (end_date) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_START_DATE} <= :${COLUMN_END_DATE}`,
+        `${TABLES.store_settings}.${COLUMN_START_DATE} <= :${COLUMN_END_DATE}`,
         {
           end_date,
         },

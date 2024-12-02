@@ -17,10 +17,11 @@ import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { TABLES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@ApiTags('Customers')
-@Controller('customers')
+@ApiTags(TABLES.customer)
+@Controller(TABLES.customer)
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 

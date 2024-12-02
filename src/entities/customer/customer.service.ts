@@ -17,8 +17,8 @@ import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { NotFoundError } from 'rxjs';
+import { TABLES } from '@src/db/const-tables';
 
-const TABLE_NAME = 'customers';
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
 export class CustomerService {
@@ -146,11 +146,11 @@ export class CustomerService {
   ): SelectQueryBuilder<Customer> {
     const { updated_at } = customerQueryParamsDto;
 
-    const query = this.customerRepository.createQueryBuilder(TABLE_NAME);
+    const query = this.customerRepository.createQueryBuilder(TABLES.customer);
 
     if (updated_at) {
       query.andWhere(
-        `${TABLE_NAME}.${COLUMN_UPDATED_AT} >= :${COLUMN_UPDATED_AT}`,
+        `${TABLES.customer}.${COLUMN_UPDATED_AT} >= :${COLUMN_UPDATED_AT}`,
         { updated_at },
       );
     }
