@@ -5,28 +5,31 @@ export class RegisterBalansResponseDto {
   id: number;
 
   @Expose()
-  activeType!: number;
+  activeType: number;
 
   @Expose()
-  documentType!: number;
+  documentType: number;
 
   @Expose()
-  documentUuid!: string;
+  documentUuid: string;
 
   @Expose()
-  documentReturnUuid!: string;
+  documentReturnUuid: string;
 
   @Expose()
-  customerId!: number;
+  customerId: number;
 
   @Expose()
-  bonus!: string;
+  bonus: string;
 
   @Expose()
-  startDate!: Date;
+  usedBonus!: string;
 
   @Expose()
-  endDate!: Date;
+  startDate: Date;
+
+  @Expose()
+  endDate: Date;
 
   @Expose()
   createdAt: Date;

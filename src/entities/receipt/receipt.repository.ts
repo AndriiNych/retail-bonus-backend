@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
-import { ReceiptResponseBaseDto } from './dto/receipt-response-base.dto';
 
 @Injectable()
 export class ReceiptRepository extends Repository<Receipt> {
@@ -13,9 +12,17 @@ export class ReceiptRepository extends Repository<Receipt> {
     super(Receipt, dataSource.createEntityManager());
   }
 
+  public async deleteReceiptByUuid(uuid: string): Promise<Receipt> {
+    const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
+
+    await this.delete({ uuid });
+
+    return receipt;
+  }
+
   public async fetchReceiptByUuidWithValidation(
     uuid: string,
-  ): Promise<ReceiptResponseBaseDto> {
+  ): Promise<Receipt> {
     const receipt = await this.fetchReceiptByUuid(uuid);
 
     if (!receipt) {
@@ -32,9 +39,7 @@ export class ReceiptRepository extends Repository<Receipt> {
     }
   }
 
-  private async fetchReceiptByUuid(
-    uuid: string,
-  ): Promise<ReceiptResponseBaseDto> {
+  private async fetchReceiptByUuid(uuid: string): Promise<Receipt> {
     return await this.findOneBy({ uuid });
   }
 }

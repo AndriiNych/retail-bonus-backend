@@ -30,6 +30,9 @@ export class RegisterBalans {
   @Column({ ...FIELDS.DECIMAL, name: 'bonus' })
   bonus: string;
 
+  @Column({ ...FIELDS.DECIMAL, name: 'used_bonus' })
+  usedBonus: string;
+
   @Index()
   @Column({ ...FIELDS.DATE, name: 'start_date' })
   startDate: Date;

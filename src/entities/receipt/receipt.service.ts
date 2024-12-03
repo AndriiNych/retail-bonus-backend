@@ -58,15 +58,13 @@ export class ReceiptService {
     return { ...resultReceipt, ...resultCustomer };
   }
 
+  /* deleteReceipt - temporarily disabled
   public async deleteReceipt(
     receiptParamsDto: ReceiptParamsDto,
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
     const { uuid } = receiptParamsDto;
 
-    const receipt =
-      await this.receiptRepository.fetchReceiptByUuidWithValidation(uuid);
-
-    await this.receiptRepository.delete({ uuid });
+    const receipt = await this.receiptRepository.deleteReceiptByUuid(uuid);
 
     const resultTransform =
       await this.transformCustomerIdToPhoneNumber(receipt);
@@ -75,7 +73,7 @@ export class ReceiptService {
 
     return responseWrapper(result, ReceiptResponseDto);
   }
-
+*/
   public async getReceiptByUuid(
     receiptParamsDto: ReceiptParamsDto,
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {

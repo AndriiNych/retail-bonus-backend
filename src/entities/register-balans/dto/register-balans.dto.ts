@@ -43,6 +43,12 @@ export class RegisterBalansDto {
   })
   bonus: string;
 
+  @IsString()
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: MSG.ERR.VALIDATION.decimal('totalAmount'),
+  })
+  usedBonus: string;
+
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()

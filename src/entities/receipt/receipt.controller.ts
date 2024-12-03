@@ -21,10 +21,11 @@ import { TABLES } from '@src/db/const-tables';
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 
-  @Delete('/uuid/:uuid')
-  async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
-    return await this.receiptService.deleteReceipt(receiptParamsDto);
-  }
+  // temporarily disabled
+  // @Delete('/uuid/:uuid')
+  // async deleteReceiptByUuid(@Param() receiptParamsDto: ReceiptParamsDto) {
+  //   return await this.receiptService.deleteReceipt(receiptParamsDto);
+  // }
 
   // @Get('/')
   // async getAllReceipts() {
