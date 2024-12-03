@@ -2,6 +2,7 @@ import { OmitType } from '@nestjs/mapped-types';
 import { RegisterBalansResponseDto } from './register-balans-response.dto';
 import { Expose } from 'class-transformer';
 
+//TODO maybe need used ReceiptDto as based class
 export class RegisterBalansTransformBaseDto extends OmitType(
   RegisterBalansResponseDto,
   ['id', 'createdAt', 'updatedAt'] as const,

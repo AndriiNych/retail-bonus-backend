@@ -5,6 +5,7 @@ import { ReceiptController } from './receipt.controller';
 import { ReceiptService } from './receipt.service';
 import { CustomerModule } from '../customer/customer.module';
 import { RegisterBalansModule } from '../register-balans/register-balans.module';
+import { ReceiptRepository } from './receipt.repository';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { RegisterBalansModule } from '../register-balans/register-balans.module'
     RegisterBalansModule,
   ],
   controllers: [ReceiptController],
-  providers: [ReceiptService],
+  providers: [ReceiptService, ReceiptRepository],
 })
 export class ReceiptModule {}

@@ -18,12 +18,14 @@ import { ReceiptResponseBaseDto } from './dto/receipt-response-base.dto';
 import { RegisterBalansService } from '../register-balans/register-balans.service';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLES } from '@src/db/const-tables';
+import { ReceiptRepository } from './receipt.repository';
 
 @Injectable()
 export class ReceiptService {
   constructor(
-    @InjectRepository(Receipt)
-    private readonly receiptRepository: Repository<Receipt>,
+    // @InjectRepository(Receipt)
+    // private readonly receiptRepository: Repository<Receipt>,
+    private readonly receiptRepository: ReceiptRepository,
     private readonly customerService: CustomerService,
     private readonly registeBalansService: RegisterBalansService,
   ) {}
@@ -32,7 +34,7 @@ export class ReceiptService {
     receiptDto: ReceiptDto,
   ): Promise<Record<string, any[]>> {
     // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-    await this.isExistReceipt(receiptDto.uuid);
+    await this.receiptRepository.isExistReceipt(receiptDto.uuid);
 
     const newReceipt =
       await this.transtormCustomerPhoneToCustomerId(receiptDto);
@@ -61,7 +63,8 @@ export class ReceiptService {
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
     const { uuid } = receiptParamsDto;
 
-    const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
+    const receipt =
+      await this.receiptRepository.fetchReceiptByUuidWithValidation(uuid);
 
     await this.receiptRepository.delete({ uuid });
 
@@ -78,7 +81,8 @@ export class ReceiptService {
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
     const { uuid } = receiptParamsDto;
 
-    const receipt = await this.fetchReceiptByUuidWithValidation(uuid);
+    const receipt =
+      await this.receiptRepository.fetchReceiptByUuidWithValidation(uuid);
 
     const resultTransform =
       await this.transformCustomerIdToPhoneNumber(receipt);
@@ -118,6 +122,7 @@ export class ReceiptService {
   }
 */
 
+  /*
   private async fetchReceiptByUuidWithValidation(
     uuid: string,
   ): Promise<ReceiptResponseBaseDto> {
@@ -129,20 +134,23 @@ export class ReceiptService {
 
     return receipt;
   }
+*/
 
+  /*
   private async fetchReceiptByUuid(
     uuid: string,
   ): Promise<ReceiptResponseBaseDto> {
     return await this.receiptRepository.findOneBy({ uuid });
   }
-
+*/
+  /*
   private async isExistReceipt(uuid: string): Promise<void> {
     const receipt = await this.fetchReceiptByUuid(uuid);
     if (receipt) {
       throw new ConflictException(`Record with uuid: ${uuid} already exists.`);
     }
   }
-
+*/
   private async fetchCustomerIdByPhone(phone: string): Promise<number> {
     const customerParamsDto = new CustomerParamsDto();
     customerParamsDto.phone = phone;
