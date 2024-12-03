@@ -12,6 +12,7 @@ import { WorkerModule } from './entities/worker/worker.module';
 import { ReceiptModule } from './entities/receipt/receipt.module';
 import { ReceiptProgressModule } from './entities/receipt-progress/receipt-progress.module';
 import { RegisterBalansModule } from './entities/register-balans/register-balans.module';
+import { RegisterSavingModule } from './entities/register-saving/register-saving.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RegisterBalansModule } from './entities/register-balans/register-balans
     ActiveModule,
     CustomerModule,
     RegisterBalansModule,
+    RegisterSavingModule,
     ReceiptModule,
     ReceiptProgressModule,
     StoreModule,

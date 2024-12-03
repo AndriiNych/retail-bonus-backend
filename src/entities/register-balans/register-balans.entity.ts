@@ -1,10 +1,13 @@
 import { FIELDS } from '@src/db/const-fields';
+import { TABLES } from '@src/db/const-tables';
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('register_balans')
+@Entity(TABLES.register_balans)
 export class RegisterBalans {
   @PrimaryGeneratedColumn()
   id: number;
+
+  //TODO move activeType & documentType from ...service.ts to individual file and define types from there
 
   // 0 - feature records, 1 - active records, 99 - close records
   @Column({ ...FIELDS.NUMBER, name: 'active_type' })
