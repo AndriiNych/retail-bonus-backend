@@ -34,17 +34,32 @@ export class RegisterBalansService {
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
   ): Promise<CustomerResponseDto> {
-    const { customerId, accuredBonus, spentBonus } = receiptResponseBaseDto;
+    await this.saveAcuredBonus(receiptResponseBaseDto, manager);
 
-    //FIXME implement method saveRegisterBalans for diferent DocumentType
-    if (accuredBonus) {
+    const updatedCustomer = await this.saveSpentBonus(receiptResponseBaseDto, manager);
+
+    return updatedCustomer;
+  }
+
+  private async saveAcuredBonus(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    manager: EntityManager,
+  ): Promise<void> {
+    if (receiptResponseBaseDto.accuredBonus) {
       await this.saveRegisterBalans(receiptResponseBaseDto, DocumentType.Receipt, manager);
     }
+  }
+
+  private async saveSpentBonus(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    manager: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    const { customerId, spentBonus } = receiptResponseBaseDto;
 
     let updatedCustomer: CustomerResponseDto;
 
     if (spentBonus) {
-      await this.saveRegisterBalans(receiptResponseBaseDto, DocumentType.SpentBonus, manager);
+      await this.saveReisterBalansAsSpentBonus(receiptResponseBaseDto, manager);
 
       updatedCustomer = await this.updateBonusByCustomerId(
         customerId,
@@ -52,10 +67,16 @@ export class RegisterBalansService {
         DocumentType.SpentBonus,
         manager,
       );
-      //TODO to create a function that will use the FIFO method to distribute the withdrawn amount according to the available bonus accruals
     }
 
     return updatedCustomer;
+  }
+
+  private async saveReisterBalansAsSpentBonus(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    manager: EntityManager,
+  ): Promise<RegisterBalansResponseDto> {
+    return await this.saveRegisterBalans(receiptResponseBaseDto, DocumentType.SpentBonus, manager);
   }
 
   private async updateBonusByCustomerId(
