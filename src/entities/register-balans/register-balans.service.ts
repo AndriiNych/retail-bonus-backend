@@ -61,6 +61,8 @@ export class RegisterBalansService {
     if (spentBonus) {
       await this.saveReisterBalansAsSpentBonus(receiptResponseBaseDto, manager);
 
+      //FIXME insert calculate usedBonus
+
       updatedCustomer = await this.updateBonusByCustomerId(
         customerId,
         spentBonus,
@@ -130,13 +132,7 @@ export class RegisterBalansService {
       { strategy: 'excludeAll' },
     );
 
-    const registerBalansDto = {
-      ...registerBalansTransformDto,
-      activeType,
-      documentType,
-    };
-
-    return plainToInstance(RegisterBalansDto, registerBalansDto);
+    return { ...registerBalansTransformDto, activeType, documentType };
   }
 
   private async checkBeforeCommit(documentUuid: string): Promise<void> {
