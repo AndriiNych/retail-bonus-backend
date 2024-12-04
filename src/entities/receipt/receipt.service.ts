@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
 import { ReceiptDto } from './dto/receipt.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
@@ -19,43 +19,52 @@ import { RegisterBalansService } from '../register-balans/register-balans.servic
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLES } from '@src/db/const-tables';
 import { ReceiptRepository } from './receipt.repository';
+import { Customer } from '../customer/customer.entity';
+import { plainToClass, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ReceiptService {
   constructor(
-    // @InjectRepository(Receipt)
-    // private readonly receiptRepository: Repository<Receipt>,
     private readonly receiptRepository: ReceiptRepository,
     private readonly customerService: CustomerService,
     private readonly registeBalansService: RegisterBalansService,
+    private readonly dataSource: DataSource,
   ) {}
 
   public async createReceipt(
     receiptDto: ReceiptDto,
   ): Promise<Record<string, any[]>> {
-    // ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-    await this.receiptRepository.isExistReceipt(receiptDto.uuid);
+    const customer = await this.fetchCustomerByPhone(receiptDto.customerPhone);
 
-    const newReceipt =
-      await this.transtormCustomerPhoneToCustomerId(receiptDto);
+    const newReceipt = this.transformToRecipe(receiptDto, customer.id);
 
-    const resultSave = await this.receiptRepository.save(newReceipt);
+    const resultTest = await this.dataSource.transaction(async manager => {
+      const savedReceipt =
+        await this.receiptRepository.saveWithValidationAndTransaction(
+          newReceipt,
+          manager,
+        );
 
-    const resultTransform =
-      await this.transformCustomerIdToPhoneNumber(resultSave);
+      const receiptResponseDto = this.transformToReceiptResponse(
+        savedReceipt,
+        customer.phone,
+      );
 
-    const result = resultTransform ? [resultTransform] : [];
+      const resultReceipt = wrapperResponseEntity(
+        receiptResponseDto,
+        ReceiptResponseDto,
+        TABLES.receipt,
+      );
 
-    const resultReceipt = wrapperResponseEntity(
-      result,
-      ReceiptResponseDto,
-      TABLES.receipt,
-    );
+      const resultCustomer =
+        await this.registeBalansService.CommitReceiptToRegisterBalans(
+          savedReceipt,
+        );
 
-    const resultCustomer =
-      await this.registeBalansService.CommitReceiptToRegisterBalans(resultSave);
+      return { ...resultReceipt, ...resultCustomer };
+    });
 
-    return { ...resultReceipt, ...resultCustomer };
+    return resultTest;
   }
 
   /* deleteReceipt - temporarily disabled
@@ -74,6 +83,7 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 */
+
   public async getReceiptByUuid(
     receiptParamsDto: ReceiptParamsDto,
   ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
@@ -119,7 +129,6 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 */
-
   /*
   private async fetchReceiptByUuidWithValidation(
     uuid: string,
@@ -133,7 +142,6 @@ export class ReceiptService {
     return receipt;
   }
 */
-
   /*
   private async fetchReceiptByUuid(
     uuid: string,
@@ -149,6 +157,17 @@ export class ReceiptService {
     }
   }
 */
+  private async fetchCustomerByPhone(phone: string): Promise<Customer> {
+    const customerParamsDto = new CustomerParamsDto();
+    customerParamsDto.phone = phone;
+
+    const { data } =
+      await this.customerService.getCustomerByPhoneBase(customerParamsDto);
+
+    return data[0];
+  }
+
+  //TODO delete this method
   private async fetchCustomerIdByPhone(phone: string): Promise<number> {
     const customerParamsDto = new CustomerParamsDto();
     customerParamsDto.phone = phone;
@@ -157,6 +176,26 @@ export class ReceiptService {
       await this.customerService.getCustomerByPhoneBase(customerParamsDto);
 
     return data[0].id;
+  }
+
+  private transformToRecipe(
+    receiptDto: ReceiptDto,
+    customerId: number,
+  ): Receipt {
+    const receipt = this.receiptRepository.create(receiptDto);
+
+    return { ...receipt, customerId };
+  }
+
+  private transformToReceiptResponse(
+    receipt: Receipt,
+    customerPhone: string,
+  ): ReceiptResponseDto {
+    const receiptResponseDto = plainToInstance(ReceiptResponseDto, receipt, {
+      excludeExtraneousValues: true,
+    });
+
+    return { ...receiptResponseDto, customerPhone };
   }
 
   private async transformCustomerIdToPhoneNumber(

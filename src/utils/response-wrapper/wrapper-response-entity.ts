@@ -1,11 +1,16 @@
 import { plainToInstance } from 'class-transformer';
 
+//TODO clear comment
 export function wrapperResponseEntity<T>(
-  data: T[],
+  data: any,
   dtoClass: new () => T,
   propertyName: string,
 ): Record<string, T[]> {
-  const resultData = plainToInstance(dtoClass, data);
+  const transformData = !data ? [] : Array.isArray(data) ? data : [data];
+
+  const resultData = plainToInstance(dtoClass, transformData, {
+    excludeExtraneousValues: true,
+  });
 
   return { [propertyName]: resultData };
 }

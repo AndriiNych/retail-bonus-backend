@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
 
 @Injectable()
@@ -19,6 +19,19 @@ export class ReceiptRepository extends Repository<Receipt> {
 
     return receipt;
   }
+
+  public async saveWithValidationAndTransaction(
+    receipt: Receipt,
+    manager: EntityManager,
+  ): Promise<Receipt> {
+    await this.isExistReceipt(receipt.uuid);
+
+    const result = await manager.save(Receipt, receipt);
+
+    return result;
+  }
+
+  //TODO correct all scopes for methods
 
   public async fetchReceiptByUuidWithValidation(
     uuid: string,
