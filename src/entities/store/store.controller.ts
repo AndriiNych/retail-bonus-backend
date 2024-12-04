@@ -5,10 +5,10 @@ import { StoreDto } from './dto/store.dto';
 import { StoreUpdateDto } from './dto/store-update.dto';
 import { StoreParams } from './dto/store-params.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@Controller(TABLES.store)
+@Controller(TABLE_NAMES.store)
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
@@ -28,13 +28,7 @@ export class StoreController {
   }
 
   @Put('/:uuid')
-  async updateStore(
-    @Param() storeParams: StoreParams,
-    @Body() storeUpdateDto: StoreUpdateDto,
-  ) {
-    return await this.storeService.updateStoreByUuid(
-      storeParams,
-      storeUpdateDto,
-    );
+  async updateStore(@Param() storeParams: StoreParams, @Body() storeUpdateDto: StoreUpdateDto) {
+    return await this.storeService.updateStoreByUuid(storeParams, storeUpdateDto);
   }
 }

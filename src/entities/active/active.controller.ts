@@ -1,9 +1,9 @@
 import { Controller, Get, HttpCode } from '@nestjs/common';
 
 import { ActiveService } from './active.service';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
-@Controller(TABLES.active)
+@Controller(TABLE_NAMES.active)
 export class ActiveController {
   constructor(private readonly activeService: ActiveService) {}
 

@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
@@ -17,18 +8,16 @@ import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@ApiTags(TABLES.customer)
-@Controller(TABLES.customer)
+@ApiTags(TABLE_NAMES.customer)
+@Controller(TABLE_NAMES.customer)
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   @Get('/')
-  async getAllCustomers(
-    @Query() customerQueryParamsDto: CustomerQueryParamsDto,
-  ) {
+  async getAllCustomers(@Query() customerQueryParamsDto: CustomerQueryParamsDto) {
     return await this.customerService.getAllCustomers(customerQueryParamsDto);
   }
 
@@ -42,10 +31,7 @@ export class CustomerController {
     @Param() customerParamsDto: CustomerParamsDto,
     @Body() customerPhonePatchDto: CustomerPhonePatchDto,
   ) {
-    return await this.customerService.changePhoneNumber(
-      customerParamsDto,
-      customerPhonePatchDto,
-    );
+    return await this.customerService.changePhoneNumber(customerParamsDto, customerPhonePatchDto);
   }
 
   @Post('single')
@@ -63,9 +49,6 @@ export class CustomerController {
     @Param() customerParamsDto: CustomerParamsDto,
     @Body() customerUpdateDto: CustomerUpdateDto,
   ) {
-    return await this.customerService.updateCustomerByPhone(
-      customerParamsDto,
-      customerUpdateDto,
-    );
+    return await this.customerService.updateCustomerByPhone(customerParamsDto, customerUpdateDto);
   }
 }

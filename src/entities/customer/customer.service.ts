@@ -1,10 +1,6 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 
 import { Customer } from './customer.entity';
 import { CustomersDto } from './dto/customers.dto';
@@ -17,7 +13,7 @@ import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { NotFoundError } from 'rxjs';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
@@ -47,9 +43,7 @@ export class CustomerService {
     return customer;
   }
 
-  public async getCustomerResponseById(
-    id: number,
-  ): Promise<CustomerResponseDto> {
+  public async getCustomerResponseById(id: number): Promise<CustomerResponseDto> {
     const customer = await this.customerRepository.findOneBy({ id });
 
     if (!customer) {
@@ -97,19 +91,29 @@ export class CustomerService {
     return responseWrapper(result, CustomerResponseDto);
   }
 
+  public async updateCustomerByPhoneWithTransaction(
+    customerParamsDto: CustomerParamsDto,
+    customerUpdateDto: CustomerUpdateDto,
+    manager: EntityManager,
+  ): Promise<Customer> {
+    //FIXME check whether the transaction is rollback if an error occurs, maybe need to use the manager
+    const currentCustomer = await this.fetchCustomerByPhoneWithValidation(customerParamsDto.phone);
+
+    const updatedCustomer = manager.merge(Customer, currentCustomer, customerUpdateDto);
+
+    return await manager.save(Customer, updatedCustomer);
+  }
+
   public async updateCustomerByPhone(
     customerParamsDto: CustomerParamsDto,
     customerUpdateDto: CustomerUpdateDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
     const { phone } = customerParamsDto;
-    //TODO - if record not found, then create error "Not found"
-    const resultUpdate = await this.customerRepository.update(
-      { phone },
-      customerUpdateDto,
-    );
+    const resultUpdate = await this.customerRepository.update({ phone }, customerUpdateDto);
 
     const result = [];
 
+    //TODO - if record not found, then create error "Not found"
     if (resultUpdate.affected === 1) {
       result.push(await this.fetchCustomerByPhone(phone));
     }
@@ -127,10 +131,7 @@ export class CustomerService {
     const { phone: newPhone } = customerPhonePatchDto;
     await this.isExistCustomer(newPhone);
 
-    const resultUpdate = await this.customerRepository.update(
-      { phone },
-      customerPhonePatchDto,
-    );
+    const resultUpdate = await this.customerRepository.update({ phone }, customerPhonePatchDto);
 
     const result = [];
 
@@ -146,24 +147,19 @@ export class CustomerService {
   ): SelectQueryBuilder<Customer> {
     const { updated_at } = customerQueryParamsDto;
 
-    const query = this.customerRepository.createQueryBuilder(TABLES.customer);
+    const query = this.customerRepository.createQueryBuilder(TABLE_NAMES.customer);
 
     if (updated_at) {
-      query.andWhere(
-        `${TABLES.customer}.${COLUMN_UPDATED_AT} >= :${COLUMN_UPDATED_AT}`,
-        { updated_at },
-      );
+      query.andWhere(`${TABLE_NAMES.customer}.${COLUMN_UPDATED_AT} >= :${COLUMN_UPDATED_AT}`, {
+        updated_at,
+      });
     }
 
     return query;
   }
 
-  private async getResultSaveCustomers(
-    customers: CustomerDto[],
-  ): Promise<CustomerResponseDto[]> {
-    const createNewCustomer = async (
-      customer: CustomerDto,
-    ): Promise<CustomerResponseDto> => {
+  private async getResultSaveCustomers(customers: CustomerDto[]): Promise<CustomerResponseDto[]> {
+    const createNewCustomer = async (customer: CustomerDto): Promise<CustomerResponseDto> => {
       const { phone } = customer;
       const resultFind = await this.fetchCustomerByPhone(phone);
       if (resultFind) {
@@ -184,29 +180,21 @@ export class CustomerService {
   private async isExistCustomer(phone: string): Promise<void> {
     const customer = await this.fetchCustomerByPhone(phone);
     if (customer) {
-      throw new ConflictException(
-        `Customer with phone: ${phone} already exists.`,
-      );
+      throw new ConflictException(`Customer with phone: ${phone} already exists.`);
     }
   }
 
-  private async fetchCustomerByPhoneWithValidation(
-    phone: string,
-  ): Promise<CustomerResponseDto> {
+  private async fetchCustomerByPhoneWithValidation(phone: string): Promise<CustomerResponseDto> {
     const customer = await this.fetchCustomerByPhone(phone);
 
     if (!customer) {
-      throw new NotFoundException(
-        `Customer with phone: ${phone} does not exist.`,
-      );
+      throw new NotFoundException(`Customer with phone: ${phone} does not exist.`);
     }
 
     return customer;
   }
 
-  private async fetchCustomerByPhone(
-    phone: string,
-  ): Promise<CustomerResponseDto> {
+  private async fetchCustomerByPhone(phone: string): Promise<CustomerResponseDto> {
     return await this.customerRepository.findOneBy({ phone });
   }
 }

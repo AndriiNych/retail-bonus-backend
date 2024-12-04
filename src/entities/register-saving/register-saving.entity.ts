@@ -1,8 +1,8 @@
 import { FIELDS } from '@src/db/const-fields';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity(TABLES.register_saving)
+@Entity(TABLE_NAMES.register_saving)
 export class RegisterSaving {
   @PrimaryGeneratedColumn()
   id: number;

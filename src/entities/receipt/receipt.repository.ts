@@ -1,10 +1,7 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @Injectable()
 export class ReceiptRepository extends Repository<Receipt> {
@@ -33,9 +30,7 @@ export class ReceiptRepository extends Repository<Receipt> {
 
   //TODO correct all scopes for methods
 
-  public async fetchReceiptByUuidWithValidation(
-    uuid: string,
-  ): Promise<Receipt> {
+  public async fetchReceiptByUuidWithValidation(uuid: string): Promise<Receipt> {
     const receipt = await this.fetchReceiptByUuid(uuid);
 
     if (!receipt) {

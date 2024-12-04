@@ -11,7 +11,7 @@ import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
 import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_STORE_UUID = 'store_uuid';
 const COLUMN_START_DATE = 'start_date';
@@ -27,11 +27,9 @@ export class StoreSettingsService {
   public async createStoreSettings(
     storeSettingsDto: StoreSettingsDto,
   ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
-    const newStoreSettings =
-      await this.storeSettingsRepository.create(storeSettingsDto);
+    const newStoreSettings = await this.storeSettingsRepository.create(storeSettingsDto);
 
-    const resultSave =
-      await this.storeSettingsRepository.save(newStoreSettings);
+    const resultSave = await this.storeSettingsRepository.save(newStoreSettings);
 
     const result = resultSave ? [resultSave] : [];
 
@@ -97,10 +95,7 @@ export class StoreSettingsService {
   ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
     const { id } = storeSettingsParamsDto;
 
-    const resultUpdate = await this.storeSettingsRepository.update(
-      { id },
-      storeSettingsUpdateDto,
-    );
+    const resultUpdate = await this.storeSettingsRepository.update({ id }, storeSettingsUpdateDto);
 
     const result = [];
 
@@ -129,19 +124,17 @@ export class StoreSettingsService {
 
     const result = await this.storeSettingsRepository
       .createQueryBuilder('store_settings')
-      .where(
-        'store_settings.store_uuid = :storeUuid AND store_settings.start_date >= :lastDate',
-        { storeUuid, lastDate: maxDate },
-      )
+      .where('store_settings.store_uuid = :storeUuid AND store_settings.start_date >= :lastDate', {
+        storeUuid,
+        lastDate: maxDate,
+      })
       .orderBy('store_settings.start_date')
       .getMany();
 
     return result;
   }
 
-  private getQueryParams(
-    storeSettingsCurrentQueryParamsDto: StoreSettingsCurrentQueryParamsDto,
-  ) {
+  private getQueryParams(storeSettingsCurrentQueryParamsDto: StoreSettingsCurrentQueryParamsDto) {
     const { storeUuid, date: dateQuery } = storeSettingsCurrentQueryParamsDto;
 
     const date = dateQuery ? dateQuery : new Date();
@@ -149,31 +142,20 @@ export class StoreSettingsService {
     return { storeUuid, date };
   }
 
-  private getQueryByCriterial(
-    storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
-  ) {
-    const {
-      storeUuid: store_uuid,
-      start_date,
-      end_date,
-    } = storeSettingsQueryParamsDto;
+  private getQueryByCriterial(storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto) {
+    const { storeUuid: store_uuid, start_date, end_date } = storeSettingsQueryParamsDto;
 
-    const query = this.storeSettingsRepository.createQueryBuilder(
-      TABLES.store_settings,
-    );
+    const query = this.storeSettingsRepository.createQueryBuilder(TABLE_NAMES.store_settings);
 
     if (store_uuid) {
-      query.andWhere(
-        `${TABLES.store_settings}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
-        {
-          store_uuid,
-        },
-      );
+      query.andWhere(`${TABLE_NAMES.store_settings}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`, {
+        store_uuid,
+      });
     }
 
     if (start_date) {
       query.andWhere(
-        `${TABLES.store_settings}.${COLUMN_START_DATE} >= :${COLUMN_START_DATE}`,
+        `${TABLE_NAMES.store_settings}.${COLUMN_START_DATE} >= :${COLUMN_START_DATE}`,
         {
           start_date,
         },
@@ -181,12 +163,9 @@ export class StoreSettingsService {
     }
 
     if (end_date) {
-      query.andWhere(
-        `${TABLES.store_settings}.${COLUMN_START_DATE} <= :${COLUMN_END_DATE}`,
-        {
-          end_date,
-        },
-      );
+      query.andWhere(`${TABLE_NAMES.store_settings}.${COLUMN_START_DATE} <= :${COLUMN_END_DATE}`, {
+        end_date,
+      });
     }
 
     return query;

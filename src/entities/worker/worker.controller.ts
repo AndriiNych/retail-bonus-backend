@@ -5,10 +5,10 @@ import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
 import { WorkerParamsDto } from './dto/worker-params.dto';
 import { WorkerUpdateDto } from './dto/worker-update.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@Controller(TABLES.worker)
+@Controller(TABLE_NAMES.worker)
 export class WorkerController {
   constructor(private readonly workerService: WorkerService) {}
 
@@ -28,9 +28,6 @@ export class WorkerController {
     @Param() workerParamsDto: WorkerParamsDto,
     @Body() workerUpdateDto: WorkerUpdateDto,
   ) {
-    return await this.workerService.updateWorkerByUuid(
-      workerParamsDto,
-      workerUpdateDto,
-    );
+    return await this.workerService.updateWorkerByUuid(workerParamsDto, workerUpdateDto);
   }
 }

@@ -1,23 +1,15 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ReceiptService } from './receipt.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReceiptDto } from './dto/receipt.dto';
 import { ReceiptResponseDto } from './dto/receipt-response.dto';
 import { ReceiptUpdateDto } from './dto/receipt-update.dto';
 import { ReceiptParamsDto } from './dto/receipt-params.dto';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@ApiTags(TABLES.receipt)
-@Controller(TABLES.receipt)
+@ApiTags(TABLE_NAMES.receipt)
+@Controller(TABLE_NAMES.receipt)
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 

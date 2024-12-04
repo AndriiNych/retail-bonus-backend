@@ -1,8 +1,8 @@
 import { FIELDS } from '@src/db/const-fields';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity(TABLES.register_balans)
+@Entity(TABLE_NAMES.register_balans)
 export class RegisterBalans {
   @PrimaryGeneratedColumn()
   id: number;

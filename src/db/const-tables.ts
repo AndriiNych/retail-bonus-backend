@@ -1,4 +1,4 @@
-export const TABLES = {
+export const TABLE_NAMES = {
   active: 'active',
   customer: 'customers',
   receipt: 'receipts',

@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  Delete,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Delete, Query } from '@nestjs/common';
 
 import { StoreSettingsService } from './store-settings.service';
 import { StoreSettingsDto } from './dto/store-settings.dto';
@@ -16,10 +7,10 @@ import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
 import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()
-@Controller(TABLES.store_settings)
+@Controller(TABLE_NAMES.store_settings)
 export class StoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}
 
@@ -27,9 +18,7 @@ export class StoreSettingsController {
   async getStoreSettingsByCriterial(
     @Query() storeSettingsQueryParamsDto: StoreSettingsQueryParamsDto,
   ) {
-    return await this.storeSettingsService.getStoreSettingsByCriterial(
-      storeSettingsQueryParamsDto,
-    );
+    return await this.storeSettingsService.getStoreSettingsByCriterial(storeSettingsQueryParamsDto);
   }
 
   @Get('current')
@@ -43,12 +32,8 @@ export class StoreSettingsController {
   }
 
   @Get('current/:id')
-  async getStoreSettingsById(
-    @Param() storeSettingsParamsDto: StoreSettingsParamsDto,
-  ) {
-    return await this.storeSettingsService.getStoreSettingsById(
-      storeSettingsParamsDto,
-    );
+  async getStoreSettingsById(@Param() storeSettingsParamsDto: StoreSettingsParamsDto) {
+    return await this.storeSettingsService.getStoreSettingsById(storeSettingsParamsDto);
   }
 
   @Post('/')
@@ -57,12 +42,8 @@ export class StoreSettingsController {
   }
 
   @Delete('/:id')
-  async deleteStoreSettings(
-    @Param() storeSettingsParamsDto: StoreSettingsParamsDto,
-  ) {
-    return await this.storeSettingsService.deleteStoreSettingsById(
-      storeSettingsParamsDto,
-    );
+  async deleteStoreSettings(@Param() storeSettingsParamsDto: StoreSettingsParamsDto) {
+    return await this.storeSettingsService.deleteStoreSettingsById(storeSettingsParamsDto);
   }
 
   @Put('/:id')

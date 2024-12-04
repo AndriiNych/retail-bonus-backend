@@ -10,7 +10,7 @@ import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { WorkerParamsDto } from './dto/worker-params.dto';
 import { WorkerUpdateDto } from './dto/worker-update.dto';
 import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
-import { TABLES } from '@src/db/const-tables';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_ID = 'id';
 const COLUMN_UUID = 'uuid';
@@ -24,9 +24,7 @@ export class WorkerService {
     private readonly workerRepository: Repository<Worker>,
   ) {}
 
-  public async createWorker(
-    workerDto: WorkerDto,
-  ): Promise<ResponseWrapperDto<WorkerResponseDto>> {
+  public async createWorker(workerDto: WorkerDto): Promise<ResponseWrapperDto<WorkerResponseDto>> {
     await this.validateExistenceByUuid(workerDto.uuid);
 
     const newWorker = this.workerRepository.create(workerDto);
@@ -53,10 +51,7 @@ export class WorkerService {
     workerUpdateDto: WorkerUpdateDto,
   ): Promise<ResponseWrapperDto<WorkerResponseDto>> {
     const { uuid } = workerParamsDto;
-    const resultUpdate = await this.workerRepository.update(
-      { uuid },
-      workerUpdateDto,
-    );
+    const resultUpdate = await this.workerRepository.update({ uuid }, workerUpdateDto);
 
     const result = [];
     if (resultUpdate.affected === 1) {
@@ -71,27 +66,26 @@ export class WorkerService {
   ): SelectQueryBuilder<Worker> {
     const { id, uuid, storeUuid, name } = workerQueryParamsDto;
 
-    const query = this.workerRepository.createQueryBuilder(TABLES.worker);
+    const query = this.workerRepository.createQueryBuilder(TABLE_NAMES.worker);
 
     if (id) {
-      query.andWhere(`${TABLES.worker}.${COLUMN_ID} = :${COLUMN_ID}`, { id });
+      query.andWhere(`${TABLE_NAMES.worker}.${COLUMN_ID} = :${COLUMN_ID}`, { id });
     }
 
     if (uuid) {
-      query.andWhere(`${TABLES.worker}.${COLUMN_UUID} = :${COLUMN_UUID}`, {
+      query.andWhere(`${TABLE_NAMES.worker}.${COLUMN_UUID} = :${COLUMN_UUID}`, {
         uuid,
       });
     }
 
     if (storeUuid) {
-      query.andWhere(
-        `${TABLES.worker}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`,
-        { store_uuid: storeUuid },
-      );
+      query.andWhere(`${TABLE_NAMES.worker}.${COLUMN_STORE_UUID} = :${COLUMN_STORE_UUID}`, {
+        store_uuid: storeUuid,
+      });
     }
 
     if (name) {
-      query.andWhere(`${TABLES.worker}.${COLUMN_NAME} LIKE :${COLUMN_NAME}`, {
+      query.andWhere(`${TABLE_NAMES.worker}.${COLUMN_NAME} LIKE :${COLUMN_NAME}`, {
         name: `%${name}%`,
       });
     }
