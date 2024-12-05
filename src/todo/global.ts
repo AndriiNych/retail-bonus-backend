@@ -9,3 +9,5 @@
 //TODO Change internal private methods "get" to "fetch"
 
 //TODO update all responseWrapper with "data" to wrapperResponseEntity
+
+//FIXME Try using PickType from the swager module. Maybe this will help when creating swager documentation

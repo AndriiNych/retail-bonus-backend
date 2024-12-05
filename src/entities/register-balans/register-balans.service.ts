@@ -36,6 +36,7 @@ export class RegisterBalansService {
   ): Promise<CustomerResponseDto> {
     await this.saveAcuredBonus(receiptResponseBaseDto, manager);
 
+    //[x]  perhaps you need to decompose saveSpentBonus into pure saceSpentBonus and saveChangeCustomer
     const updatedCustomer = await this.saveSpentBonus(receiptResponseBaseDto, manager);
 
     return updatedCustomer;

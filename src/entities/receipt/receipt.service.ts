@@ -18,13 +18,15 @@ import { ReceiptRepository } from './receipt.repository';
 import { Customer } from '../customer/customer.entity';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
+import { RegisterSavingService } from '../register-saving/register-saving.service';
 
 @Injectable()
 export class ReceiptService {
   constructor(
     private readonly receiptRepository: ReceiptRepository,
     private readonly customerService: CustomerService,
-    private readonly registeBalansService: RegisterBalansService,
+    private readonly registerBalansService: RegisterBalansService,
+    private readonly registerSavingService: RegisterSavingService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -47,10 +49,18 @@ export class ReceiptService {
         TABLE_NAMES.receipt,
       );
 
-      const changedCustomer = await this.registeBalansService.saveReceiptToRegisterBalans(
+      const changedCustomer = await this.registerBalansService.saveReceiptToRegisterBalans(
         savedReceipt,
         manager,
       );
+
+      const changedCustomer2 = await this.registerSavingService.saveReceiptToRegisterSaving(
+        savedReceipt,
+        manager,
+      );
+
+      console.log(changedCustomer);
+      console.log(changedCustomer2);
 
       const resultCustomer = wrapperResponseEntity(
         changedCustomer,
@@ -58,6 +68,7 @@ export class ReceiptService {
         TABLE_NAMES.customer,
       );
 
+      throw new NotFoundException('sdfsdfsd');
       return { ...resultReceipt, ...resultCustomer };
     });
 
