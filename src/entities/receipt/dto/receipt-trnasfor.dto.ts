@@ -1,4 +1,4 @@
-import { OmitType } from '@nestjs/swagger';
+import { OmitType } from '@nestjs/mapped-types';
 import { ReceiptResponseBaseDto } from './receipt-response-base.dto';
 import { Expose } from 'class-transformer';
 
