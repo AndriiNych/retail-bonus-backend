@@ -2,7 +2,8 @@
   "compilerOptions": {
     "paths": {
       "@src/*": ["src/*"],
-      "@entities/*": ["src/entities/*"]
+      "@entities/*": ["src/entities/*"],
+      "@services/*": ["src/services/*"]
     },
     "module": "commonjs",
     "declaration": true,

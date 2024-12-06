@@ -12,6 +12,7 @@ import { WorkerModule } from './entities/worker/worker.module';
 import { ReceiptModule } from './entities/receipt/receipt.module';
 import { RegisterBalansModule } from './entities/register-balans/register-balans.module';
 import { RegisterSavingModule } from './entities/register-saving/register-saving.module';
+import { DailyTasksModule } from './services/daily-tasks/daily-tasks.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RegisterSavingModule } from './entities/register-saving/register-saving
     StoreModule,
     StoreSettingsModule,
     WorkerModule,
+    DailyTasksModule,
   ],
 })
 export class AppModule {}
