@@ -1,6 +1,5 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Receipt } from './receipt.entity';
 import { ReceiptDto } from './dto/receipt.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
@@ -10,15 +9,15 @@ import { ReceiptParamsDto } from './dto/receipt-params.dto';
 import { ReceiptUpdateDto } from './dto/receipt-update.dto';
 import { CustomerService } from '../customer/customer.service';
 import { CustomerParamsDto } from '../customer/dto/customer-params.dto';
-import { ReceiptResponseBaseDto } from './dto/receipt-response-base.dto';
 import { RegisterBalansService } from '../register-balans/register-balans.service';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { ReceiptRepository } from './receipt.repository';
 import { Customer } from '../customer/customer.entity';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { RegisterSavingService } from '../register-saving/register-saving.service';
+import { isBonusEnough } from '@src/utils/check/isBonusEnough';
 
 @Injectable()
 export class ReceiptService {
@@ -32,6 +31,8 @@ export class ReceiptService {
 
   public async createReceipt(receiptDto: ReceiptDto): Promise<Record<string, any[]>> {
     const customer = await this.fetchCustomerByPhone(receiptDto.customerPhone);
+
+    isBonusEnough(customer.amountBonus, receiptDto.spentBonus);
 
     const newReceipt = this.transformToRecipe(receiptDto, customer.id);
 
@@ -65,13 +66,14 @@ export class ReceiptService {
         TABLE_NAMES.customer,
       );
 
-      // throw new NotFoundException('sdfsdfsd');
+      //[x] throw new NotFoundException('sdfsdfsd');
       return { ...resultReceipt, ...resultCustomer };
     });
 
     return resultTest;
   }
 
+  //[x] commented method
   /* deleteReceipt - temporarily disabled
   public async deleteReceipt(
     receiptParamsDto: ReceiptParamsDto,
@@ -103,6 +105,7 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 
+  //[x] commented method
   /* updateReceiptByUuid: this method is disabled because the check should not change
   public async updateReceiptByUuid(
     receiptParamsDto: ReceiptParamsDto,
@@ -132,6 +135,7 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 */
+  //[x] commented method
   /*
   private async fetchReceiptByUuidWithValidation(
     uuid: string,
@@ -145,6 +149,7 @@ export class ReceiptService {
     return receipt;
   }
 */
+  //[x] commented method
   /*
   private async fetchReceiptByUuid(
     uuid: string,
@@ -152,6 +157,7 @@ export class ReceiptService {
     return await this.receiptRepository.findOneBy({ uuid });
   }
 */
+  //[x] commented method
   /*
   private async isExistReceipt(uuid: string): Promise<void> {
     const receipt = await this.fetchReceiptByUuid(uuid);
@@ -160,6 +166,7 @@ export class ReceiptService {
     }
   }
 */
+
   private async fetchCustomerByPhone(phone: string): Promise<Customer> {
     const customerParamsDto = new CustomerParamsDto();
     customerParamsDto.phone = phone;
@@ -203,6 +210,7 @@ export class ReceiptService {
     return result;
   }
 
+  //[x] method not used
   //TODO Rename method and type in/out params
   private async transtormCustomerPhoneToCustomerId(
     receipt: ReceiptDto | ReceiptUpdateDto,

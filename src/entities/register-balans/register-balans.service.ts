@@ -12,6 +12,7 @@ import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
+import { isBonusEnough } from '@src/utils/check/isBonusEnough';
 
 @Injectable()
 export class RegisterBalansService {
@@ -120,16 +121,18 @@ export class RegisterBalansService {
 
   private async updateBonusByCustomerId(
     customerId: number,
-    bonus: string,
+    spentBonus: string,
     documentType: DocumentType,
     manager: EntityManager,
   ): Promise<CustomerResponseDto> {
     let currentCustomer = await this.fetchCustomerById(customerId, manager);
 
-    if (parseFloat(bonus) !== 0) {
+    isBonusEnough(currentCustomer.amountBonus, spentBonus);
+
+    if (parseFloat(spentBonus) !== 0) {
       currentCustomer.amountBonus = RegisterBalansTypeMap[documentType].operation(
         currentCustomer.amountBonus,
-        bonus,
+        spentBonus,
       );
 
       currentCustomer = await this.customerService.updateCustomerByPhoneWithTransaction(
@@ -172,6 +175,7 @@ export class RegisterBalansService {
     return { ...registerBalansTransformDto, activeType, documentType };
   }
 
+  //[x] commented method
   /* this method is disabled because checking records for existence is performed when writing a receipt
   private async checkBeforeCommit(documentUuid: string): Promise<void> {
     const registerBalans = await this.registerBalansRepository.findOneBy({
