@@ -1,16 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 
 import { TABLE_NAMES } from '@src/db/const-tables';
-import { DocumentType, RegisterBalansTypeMap } from './utils/types';
+import { ActiveType, DocumentType, RegisterBalansTypeMap } from './utils/types';
 import { RegisterBalansDto } from './dto/register-balans.dto';
 import { RegisterBalansResponseDto } from './dto/register-balans-response.dto';
 import { RegisterBalans } from './register-balans.entity';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
+import { MATH } from '@src/utils/math.decimal';
 
 @Injectable()
 export class RegisterBalansService {
@@ -62,7 +63,7 @@ export class RegisterBalansService {
     if (spentBonus) {
       await this.saveReisterBalansAsSpentBonus(receiptResponseBaseDto, manager);
 
-      //FIXME insert calculate usedBonus
+      await this.allocateSpentBonus(receiptResponseBaseDto, manager);
 
       updatedCustomer = await this.updateBonusByCustomerId(
         customerId,
@@ -73,6 +74,41 @@ export class RegisterBalansService {
     }
 
     return updatedCustomer;
+  }
+
+  private async allocateSpentBonus(
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
+    manager: EntityManager,
+  ): Promise<void> {
+    const { customerId } = receiptResponseBaseDto;
+
+    const listRegisterBalans = await manager.find(RegisterBalans, {
+      where: { customerId: customerId, activeType: ActiveType.Active },
+      order: { startDate: 'ASC' },
+    });
+
+    let spentBonus = parseFloat(receiptResponseBaseDto.spentBonus);
+    for (const e of listRegisterBalans) {
+      const sub = parseFloat(MATH.DECIMAL.subtract(e.bonus, e.usedBonus));
+      const newRegisterBalans = { ...e };
+      if (sub !== 0 && spentBonus !== 0) {
+        const delta = spentBonus - sub;
+        if (delta > 0) {
+          newRegisterBalans.usedBonus = newRegisterBalans.bonus;
+          spentBonus = delta;
+        } else if (delta === 0) {
+          newRegisterBalans.usedBonus = newRegisterBalans.bonus;
+          spentBonus = 0;
+        } else {
+          newRegisterBalans.usedBonus = MATH.DECIMAL.add(
+            newRegisterBalans.usedBonus,
+            spentBonus.toString(),
+          );
+          spentBonus = 0;
+        }
+        await manager.save(TABLE_NAMES.register_balans, newRegisterBalans);
+      }
+    }
   }
 
   private async saveReisterBalansAsSpentBonus(
@@ -136,6 +172,7 @@ export class RegisterBalansService {
     return { ...registerBalansTransformDto, activeType, documentType };
   }
 
+  /* this method is disabled because checking records for existence is performed when writing a receipt
   private async checkBeforeCommit(documentUuid: string): Promise<void> {
     const registerBalans = await this.registerBalansRepository.findOneBy({
       documentUuid,
@@ -147,6 +184,7 @@ export class RegisterBalansService {
       );
     }
   }
+*/
 
   private async fetchCustomerById(
     customerId: number,

@@ -37,8 +37,6 @@ export class RegisterSavingService {
       },
     );
 
-    console.log(registerSavingDto);
-
     await this.saveRegisterSaving(registerSavingDto, manager);
 
     const updatedCustomer = await this.updateSavingByCustomerId(

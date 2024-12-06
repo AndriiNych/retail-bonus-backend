@@ -65,7 +65,7 @@ export class ReceiptService {
         TABLE_NAMES.customer,
       );
 
-      throw new NotFoundException('sdfsdfsd');
+      // throw new NotFoundException('sdfsdfsd');
       return { ...resultReceipt, ...resultCustomer };
     });
 
