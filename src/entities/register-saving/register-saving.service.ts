@@ -1,14 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterSaving } from './register-saving.entity';
-import { EntityManager, EntityOptions, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { RegisterSavingDto } from './dto/register-saving.dto';
 import { RegisterSavingResponseDto } from './dto/register-saving-response.dto';
-import { TABLE_NAMES } from '@src/db/const-tables';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { plainToInstance } from 'class-transformer';
-import { TransformReceiptToRegisterBaseDto } from '../receipt/dto/receipt-trnasfor.dto';
 import { TransformToRegisterSavingBaseDto } from './dto/register-saving-transform.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
@@ -53,7 +51,6 @@ export class RegisterSavingService {
     manager: EntityManager,
   ): Promise<RegisterSavingResponseDto> {
     return await manager.save(RegisterSaving, registerSavingDto);
-    // return await this.registerSavingRepository.save(registerSavingDto);
   }
 
   private async updateSavingByCustomerId(

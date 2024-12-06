@@ -12,7 +12,6 @@ import { CustomerUpdateDto } from './dto/customer-update.dto';
 import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
-import { NotFoundError } from 'rxjs';
 import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_UPDATED_AT = 'updated_at';

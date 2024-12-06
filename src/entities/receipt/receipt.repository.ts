@@ -1,7 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
-import { TABLE_NAMES } from '@src/db/const-tables';
 
 @Injectable()
 export class ReceiptRepository extends Repository<Receipt> {
