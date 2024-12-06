@@ -88,7 +88,7 @@ export class RegisterBalansService {
     documentType: DocumentType,
     manager: EntityManager,
   ): Promise<CustomerResponseDto> {
-    let currentCustomer = await this.fetchCustomerById(customerId);
+    let currentCustomer = await this.fetchCustomerById(customerId, manager);
 
     if (parseFloat(bonus) !== 0) {
       currentCustomer.amountBonus = RegisterBalansTypeMap[documentType].operation(
@@ -148,9 +148,10 @@ export class RegisterBalansService {
     }
   }
 
-  private async fetchCustomerById(customerId: number): Promise<CustomerResponseDto> {
-    const result = await this.customerService.getCustomerResponseById(customerId);
-
-    return result;
+  private async fetchCustomerById(
+    customerId: number,
+    manager: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    return await this.customerService.getCustomerByIdWithTransaction(customerId, manager);
   }
 }

@@ -43,6 +43,19 @@ export class CustomerService {
     return customer;
   }
 
+  public async getCustomerByIdWithTransaction(
+    id: number,
+    manager: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    const customer = await manager.findOneBy(Customer, { id });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
+    }
+
+    return customer;
+  }
+
   public async getCustomerResponseById(id: number): Promise<CustomerResponseDto> {
     const customer = await this.customerRepository.findOneBy({ id });
 
@@ -97,7 +110,10 @@ export class CustomerService {
     manager: EntityManager,
   ): Promise<Customer> {
     //FIXME check whether the transaction is rollback if an error occurs, maybe need to use the manager
-    const currentCustomer = await this.fetchCustomerByPhoneWithValidation(customerParamsDto.phone);
+    const currentCustomer = await this.fetchCustomerByPhoneWithValidation(
+      customerParamsDto.phone,
+      manager,
+    );
 
     const updatedCustomer = manager.merge(Customer, currentCustomer, customerUpdateDto);
 
@@ -184,8 +200,11 @@ export class CustomerService {
     }
   }
 
-  private async fetchCustomerByPhoneWithValidation(phone: string): Promise<CustomerResponseDto> {
-    const customer = await this.fetchCustomerByPhone(phone);
+  private async fetchCustomerByPhoneWithValidation(
+    phone: string,
+    manager?: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    const customer = await this.fetchCustomerByPhone(phone, manager);
 
     if (!customer) {
       throw new NotFoundException(`Customer with phone: ${phone} does not exist.`);
@@ -194,7 +213,14 @@ export class CustomerService {
     return customer;
   }
 
-  private async fetchCustomerByPhone(phone: string): Promise<CustomerResponseDto> {
-    return await this.customerRepository.findOneBy({ phone });
+  private async fetchCustomerByPhone(
+    phone: string,
+    manager?: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    if (manager) {
+      return await manager.findOneBy(Customer, { phone });
+    } else {
+      return await this.customerRepository.findOneBy({ phone });
+    }
   }
 }

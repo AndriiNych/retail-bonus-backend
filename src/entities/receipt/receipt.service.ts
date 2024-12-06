@@ -49,18 +49,15 @@ export class ReceiptService {
         TABLE_NAMES.receipt,
       );
 
-      const changedCustomer = await this.registerBalansService.saveReceiptToRegisterBalans(
+      let changedCustomer = await this.registerBalansService.saveReceiptToRegisterBalans(
         savedReceipt,
         manager,
       );
 
-      const changedCustomer2 = await this.registerSavingService.saveReceiptToRegisterSaving(
+      changedCustomer = await this.registerSavingService.saveReceiptToRegisterSaving(
         savedReceipt,
         manager,
       );
-
-      console.log(changedCustomer);
-      console.log(changedCustomer2);
 
       const resultCustomer = wrapperResponseEntity(
         changedCustomer,

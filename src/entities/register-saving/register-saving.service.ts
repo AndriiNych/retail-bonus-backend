@@ -63,7 +63,7 @@ export class RegisterSavingService {
     saving: string,
     manager: EntityManager,
   ): Promise<CustomerResponseDto> {
-    let currentCustomer = await this.fetchCustomerById(customerId);
+    let currentCustomer = await this.fetchCustomerById(customerId, manager);
 
     if (parseFloat(saving) !== 0) {
       currentCustomer.amountBox = MATH.DECIMAL.add(currentCustomer.amountBox, saving);
@@ -78,9 +78,11 @@ export class RegisterSavingService {
     return currentCustomer;
   }
 
-  private async fetchCustomerById(customerId: number): Promise<CustomerResponseDto> {
-    const result = await this.customerService.getCustomerResponseById(customerId);
-
-    return result;
+  //FIXME Maybe you need to put this method in a separate class?
+  private async fetchCustomerById(
+    customerId: number,
+    manager: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    return await this.customerService.getCustomerByIdWithTransaction(customerId, manager);
   }
 }
