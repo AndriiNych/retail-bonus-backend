@@ -4,7 +4,7 @@ import { DailyTasksService } from './daily-tasks.service';
 
 @Module({
   imports: [],
-  controllers: [EDailyTasksController],
+  controllers: [DailyTasksController],
   providers: [DailyTasksService],
 })
 export class DailyTasksModule {}
