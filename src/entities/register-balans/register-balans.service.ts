@@ -13,6 +13,8 @@ import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
 import { isBonusEnough } from '@src/utils/check/isBonusEnough';
+import { RegisterBalansQueryDto } from './dto/register-balsns.query.dto';
+import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
 
 @Injectable()
 export class RegisterBalansService {
@@ -42,6 +44,18 @@ export class RegisterBalansService {
     const updatedCustomer = await this.saveSpentBonus(receiptResponseBaseDto, manager);
 
     return updatedCustomer;
+  }
+
+  public async updateRegisterBalansById(
+    manager: EntityManager,
+    id: number,
+    registerBalansUpdateDto: RegisterBalansUpdateDto,
+  ): Promise<RegisterBalansResponseDto> {
+    const fetchRecord = await manager.findOneBy(RegisterBalans, { id });
+
+    const newRecord = manager.merge(RegisterBalans, fetchRecord, registerBalansUpdateDto);
+
+    return await manager.save(RegisterBalans, newRecord);
   }
 
   private async saveAcuredBonus(
