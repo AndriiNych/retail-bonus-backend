@@ -17,7 +17,7 @@ export function filterTransformObjectDto(obj): FilterBaseDto {
 //TODO magic-worlds ['gte', 'lte', 'equal', 'ne', 'lt', 'gt', 'in', 'like']
 export function filterTransformDateDto(obj): FilterBaseDateDto {
   const result = Object.entries(obj).reduce((acc, [key, value]) => {
-    if (['gte', 'lte', 'equal', 'ne', 'lt', 'gt', 'in', 'like'].includes(key)) {
+    if (['gte', 'lte', 'equal', 'ne', 'lt', 'gt', 'like', 'in'].includes(key)) {
       acc[key] = value;
       return acc;
     }
