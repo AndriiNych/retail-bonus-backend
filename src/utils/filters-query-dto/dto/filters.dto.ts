@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { IsDate, IsISO8601, IsOptional } from 'class-validator';
 
 export class FilterBaseDto {

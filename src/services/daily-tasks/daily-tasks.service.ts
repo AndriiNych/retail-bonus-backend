@@ -7,15 +7,14 @@ import { RegisterBalansQueryDto } from '@src/entities/register-balans/dto/regist
 import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans-response.dto';
 import { RegisterBalans } from '@src/entities/register-balans/register-balans.entity';
 import { TABLE_NAMES } from '@src/db/const-tables';
-import { plainToInstance } from 'class-transformer';
-
-const transformQueryKeyToSymbol = {
-  ne: '!=',
-  gt: '>',
-  lt: '<',
-  gte: '>=',
-  lte: '<=',
-};
+import { plainToClass, plainToInstance } from 'class-transformer';
+import {
+  addConditionToQueryBuilder,
+  addSortToQueryBuilder,
+  configureSelectQueryBuilder,
+} from '@src/utils/repository/add-select-query_builder';
+import { DailyTasksQueryBaseDto } from './dto/daily-tasks-query.base.dto';
+import { ActiveType } from '@src/entities/register-balans/utils/types';
 
 @Injectable()
 export class DailyTasksService {
@@ -25,156 +24,82 @@ export class DailyTasksService {
   ) {}
 
   public async processDailyReculculateBonusByDate(
-    dailyTasksQueryDto: DailyTasksQueryDto,
-  ): Promise<RegisterBalansResponseDto[]> {
-    // const { date: qCalculateDate, all } = dailyTasksQueryDto;
-    // const qAll = getQueryParamValueAsBoolean(all);
-    console.log(dailyTasksQueryDto);
-
-    let updatedCustomerIdList: Set<number>;
+    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
+  ): Promise<void> {
+    // RegisterBalansResponseDto[]>
+    const { queryOnDisabled, queryOnActivated } =
+      this.transfomQueryObjForRecalc(dailyTasksQueryBaseDto);
 
     const resultTransaction = await this.dataSource.transaction(async manager => {
-      const r = await this.getSelectRecords(manager, dailyTasksQueryDto);
-      console.log(r);
-      // try {
-      //   const sqb = manager.createQueryBuilder(RegisterBalans, TABLE_NAMES.register_balans);
+      // disable rows in register-balance with data-end <= calculateDate
+      const resultDisabled = await this.updateDataInRegisterBalasn(
+        manager,
+        queryOnDisabled,
+        ActiveType.Close,
+      );
 
-      //   const sqbWere = this.addConditionToQueryBuilder(sqb, dailyTasksQueryDto);
+      // activate rows in register-balance where data-start <= calculateDate
+      const resultActivated = await this.updateDataInRegisterBalasn(
+        manager,
+        queryOnActivated,
+        ActiveType.Active,
+      );
 
-      //   result = await sqbWere.getMany();
+      //TODO review TypeDocument !!!
 
-      //   // disable rows in register-balance with data-end <= calculateDate
-      //   // const resultDisable = await this.disableRecordWithDataEndIsExpired(
-      //   //   manager,
-      //   //   dailyTasksQueryDto,
-      //   // );
-      // } catch (err) {
-      //   throw new UnprocessableEntityException(err);
-      // }
-
-      // // activate rows in register-balance where data-start <= calculateDate
-
-      // updatedCustomerIdList = new Set([...resultTransaction]);
-      return r;
+      // const updatedCustomerIdList = new Set();
+      const updatedCustomerIdList = new Set([...resultDisabled, ...resultActivated]);
+      return updatedCustomerIdList;
     });
 
-    return plainToInstance(RegisterBalansResponseDto, resultTransaction);
+    console.log(resultTransaction);
+
+    // return plainToInstance(RegisterBalansResponseDto, resultTransaction);
     // console.log(updatedCustomerIdList);
 
     // if query-param "all" is true,
     // then recalculate to all customers by amountBonus
     // else recalculate customers by amountBonus where is implemented recalculate
-
-    // const contractors = await manager
-    // .createQueryBuilder(Contractor, 'contractor')
-    // .where('contractor.name LIKE :name', { name: searchString }) // Пошук за назвою
-    // .andWhere('contractor.createdAt > :date', { date: '2022-12-12' }) // Фільтр за датою створення
-    // .orderBy('contractor.name', 'ASC') // Сортування за назвою
-    // .addOrderBy('contractor.createdAt', 'DESC') // Сортування за датою створення
-    // .skip((page - 1) * pageSize) // Пропустити записи для попередніх сторінок
-    // .take(pageSize) // Обмежити кількість записів
-    // .getMany(); // Отримати масив записів
   }
 
-  private async getSelectRecords(
-    manager: EntityManager,
-    queryString: DailyTasksQueryDto,
-  ): Promise<RegisterBalansResponseDto[]> {
-    const sqb = manager.createQueryBuilder(RegisterBalans, TABLE_NAMES.register_balans);
+  private transfomQueryObjForRecalc(
+    queryObj: DailyTasksQueryBaseDto,
+  ): Record<string, DailyTasksQueryDto> {
+    const { date, customerId, all } = queryObj;
 
-    const sqbWere = this.addConditionToQueryBuilder(sqb, queryString);
-
-    try {
-      return await sqbWere.getMany();
-    } catch (err) {
-      throw new UnprocessableEntityException(err);
-    }
-  }
-
-  private addConditionToQueryBuilder<T>(
-    sqb: SelectQueryBuilder<T>,
-    condition,
-  ): SelectQueryBuilder<T> {
-    Object.entries(condition).forEach(([key, value]) => {
-      if (typeof value === 'object' && Object.prototype.toString.call(value) !== '[object Date]') {
-        Object.entries(value).forEach(([keyIn, valueIn]) => {
-          if (
-            typeof valueIn === 'object' &&
-            Object.prototype.toString.call(valueIn) !== '[object Date]'
-          ) {
-            throw new NotImplementedException(`Not Implemented. ${keyIn} is error.`);
-          }
-          console.log(
-            `${this.getColumnNameInEntity(sqb, key)} ${transformQueryKeyToSymbol[keyIn]} :${keyIn}`,
-            {
-              [keyIn]: valueIn,
-            },
-          );
-          sqb.andWhere(
-            `${this.getColumnNameInEntity(sqb, key)} ${transformQueryKeyToSymbol[keyIn]} :${keyIn}`,
-            {
-              [keyIn]: valueIn,
-            },
-          );
-        });
-      } else {
-        console.log(`${this.getColumnNameInEntity(sqb, key)} = :${key}`, { [key]: value });
-        sqb.andWhere(`${this.getColumnNameInEntity(sqb, key)} = :${key}`, { [key]: value });
-      }
+    const queryOnDisabled = plainToInstance(DailyTasksQueryDto, {
+      endDate: { lte: date },
+      activeType: ActiveType.Active,
     });
-    return sqb;
+
+    const queryOnActivated = plainToInstance(DailyTasksQueryDto, {
+      startDate: { lte: date },
+      activeType: ActiveType.Future,
+    });
+
+    return { queryOnDisabled, queryOnActivated };
   }
 
-  private getColumnNameInEntity<T>(
-    sqb: SelectQueryBuilder<T>,
-    propertyName: string,
-  ): string | undefined {
-    const metadata = sqb.connection.getMetadata(sqb.alias);
-
-    const column = metadata.columns.find(col => col.propertyName === propertyName);
-
-    return column?.databaseName;
-  }
-
-  /*
-  private async disableRecordWithDataEndIsExpired(
+  private async updateDataInRegisterBalasn(
     manager: EntityManager,
-    query: RegisterBalansQueryDto,
+    queryByUpdate: DailyTasksQueryDto,
+    activeType: ActiveType,
   ): Promise<Set<number>> {
     const result: Set<number> = new Set();
 
-    const registerBalansList = await this.registerBalansService.getAllRecordsByDate(manager, query);
-
-    console.log(registerBalansList);
+    const registerBalansList = await this.registerBalansService.getAllRecords(
+      manager,
+      queryByUpdate,
+    );
+    console.log(queryByUpdate);
+    console.log({ ...registerBalansList });
 
     for (const e of registerBalansList) {
-      const newRecord = { activeType: 99 };
+      const newRecord = { activeType };
       await this.registerBalansService.updateRegisterBalansById(manager, e.id, newRecord);
       result.add(e.customerId);
     }
 
     return result;
   }
-*/
-
-  /*
-  private async getAllRecordsWithDataEndByDate(
-    manager: EntityManager,
-    query: RegisterBalansQueryDto,
-  ): Promise<RegisterBalansResponseDto[]> {
-    const { startDate = '2024-01-01', endDate = new Date() } = query;
-
-    console.log(startDate);
-    console.log(endDate);
-
-    const result = await manager
-      .createQueryBuilder(RegisterBalans, TABLE_NAMES.register_balans)
-      .where('register_balans.end_date >= :startDate', { startDate })
-      .andWhere('register_balans.end_date <= :endDate', { endDate })
-      .andWhere('register_balans.active_type = :activeType', { activeType: 1 })
-      .getMany();
-
-    return result;
-  }
-*/
 }

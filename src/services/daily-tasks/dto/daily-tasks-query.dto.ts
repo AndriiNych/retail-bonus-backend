@@ -1,26 +1,22 @@
 import { ApiClassProperties } from '@src/utils/api-class-properties.decorator';
 import { FilterBaseDateDto } from '@src/utils/filters-query-dto/dto/filters.dto';
-import {
-  filterTransformDateDto,
-  filterTransformObjectDto,
-} from '@src/utils/filters-query-dto/filterTransformObjectDto';
-import { plainToInstance, Transform, Type } from 'class-transformer';
-import {
-  IsDate,
-  IsInt,
-  IsISO8601,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { filterTransformDateDto } from '@src/utils/filters-query-dto/filterTransformObjectDto';
+import { Transform, Type } from 'class-transformer';
+import { IsInt, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 @ApiClassProperties()
 export class DailyTasksQueryDto {
   @IsOptional()
   @IsInt()
-  @IsNotEmpty()
   activeType: number;
+
+  @IsOptional()
+  @IsInt()
+  documentType?: number;
+
+  @IsOptional()
+  @IsInt()
+  customerId?: number;
 
   @ValidateNested()
   @Transform(({ value }) => {
@@ -29,10 +25,10 @@ export class DailyTasksQueryDto {
       : filterTransformDateDto(value);
   })
   @Type(e => {
-    return typeof e.object[e.property] === 'object' ? FilterBaseDateDto : Date;
+    const value = e.object?.[e.property];
+    return typeof value === 'object' && value !== null ? FilterBaseDateDto : Date;
   })
   @IsOptional()
-  @IsNotEmpty()
   startDate?: FilterBaseDateDto;
 
   @ValidateNested()
@@ -42,13 +38,25 @@ export class DailyTasksQueryDto {
       : filterTransformDateDto(value);
   })
   @Type(e => {
-    return typeof e.object[e.property] === 'object' ? FilterBaseDateDto : Date;
+    const value = e.object?.[e.property];
+    return typeof value === 'object' && value !== null ? FilterBaseDateDto : Date;
   })
   @IsOptional()
-  @IsNotEmpty()
   endDate?: FilterBaseDateDto | Date;
 
   @IsOptional()
   @IsString()
   all?: string;
+
+  @IsOptional()
+  @IsInt()
+  page?: number;
+
+  @IsOptional()
+  @IsInt()
+  limit?: number;
+
+  @IsOptional()
+  @IsObject()
+  sort?: object;
 }

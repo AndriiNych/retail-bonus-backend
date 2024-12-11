@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -13,9 +13,10 @@ import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
 import { isBonusEnough } from '@src/utils/check/isBonusEnough';
-import { RegisterBalansQueryDto } from './dto/register-balsns.query.dto';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
+import { configureSelectQueryBuilder } from '@src/utils/repository/add-select-query_builder';
 
+const TABLE_NAME = TABLE_NAMES.register_balans;
 @Injectable()
 export class RegisterBalansService {
   constructor(
@@ -23,6 +24,21 @@ export class RegisterBalansService {
     private readonly registerBalansRepository: Repository<RegisterBalans>,
     private readonly customerService: CustomerService,
   ) {}
+
+  public async getAllRecords(
+    manager: EntityManager,
+    queryObj: any,
+  ): Promise<RegisterBalansResponseDto[]> {
+    const sqb = manager.createQueryBuilder(RegisterBalans, TABLE_NAME);
+
+    configureSelectQueryBuilder(sqb, queryObj);
+
+    try {
+      return await sqb.getMany();
+    } catch (err) {
+      throw new UnprocessableEntityException(err);
+    }
+  }
 
   public async createRecord(
     registerBalansDto: RegisterBalansDto,
@@ -121,7 +137,7 @@ export class RegisterBalansService {
           );
           spentBonus = 0;
         }
-        await manager.save(TABLE_NAMES.register_balans, newRegisterBalans);
+        await manager.save(TABLE_NAME, newRegisterBalans);
       }
     }
   }
@@ -169,7 +185,7 @@ export class RegisterBalansService {
       documentType,
     );
 
-    const result = await manager.save(TABLE_NAMES.register_balans, newRegisterBalans);
+    const result = await manager.save(TABLE_NAME, newRegisterBalans);
 
     return plainToInstance(RegisterBalansResponseDto, result);
   }
