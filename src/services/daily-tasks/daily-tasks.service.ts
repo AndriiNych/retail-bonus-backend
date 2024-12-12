@@ -10,6 +10,8 @@ import { RegisterBalansDto } from '@src/entities/register-balans/dto/register-ba
 import { MATH } from '@src/utils/math.decimal';
 import { CustomerService } from '@src/entities/customer/customer.service';
 import { FIELDS_LENGTH } from '@src/db/const-fields';
+import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
+import { TABLE_NAMES } from '@src/db/const-tables';
 
 @Injectable()
 export class DailyTasksService {
@@ -21,8 +23,7 @@ export class DailyTasksService {
 
   public async processDailyReculculateBonusByDate(
     dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): Promise<CustomerResponseDto[]> {
-    // RegisterBalansResponseDto[]>
+  ): Promise<Record<string, CustomerResponseDto[]>> {
     const { all } = dailyTasksQueryBaseDto;
     const { queryOnDisabled, queryOnActivated } =
       this.transfomQueryObjForRecalc(dailyTasksQueryBaseDto);
@@ -63,7 +64,7 @@ export class DailyTasksService {
       return updatedCustomersList;
     });
 
-    return resultTransaction;
+    return wrapperResponseEntity(resultTransaction, CustomerResponseDto, TABLE_NAMES.customer);
   }
 
   private async recalculateCustomersBonuses(
