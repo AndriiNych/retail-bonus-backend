@@ -13,6 +13,7 @@ import { CustomerParamsDto } from './dto/customer-params.dto';
 import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
+import { CustomerUpdateBonusDto } from './dto/customer.update.bonus.dto';
 
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
@@ -101,6 +102,18 @@ export class CustomerService {
     const result = resultSave ? [...resultSave] : [];
 
     return responseWrapper(result, CustomerResponseDto);
+  }
+
+  public async updateCustomerById(
+    manager: EntityManager,
+    customer: CustomerUpdateBonusDto,
+  ): Promise<CustomerResponseDto> {
+    const { id } = customer;
+    const fetchCustomer = await manager.findOneBy(Customer, { id });
+
+    const newCustomer = manager.merge(Customer, fetchCustomer, { ...customer });
+
+    return await manager.save(Customer, newCustomer);
   }
 
   public async updateCustomerByPhoneWithTransaction(

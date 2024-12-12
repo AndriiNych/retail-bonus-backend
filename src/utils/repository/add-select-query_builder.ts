@@ -32,8 +32,6 @@ export function addConditionToQueryBuilder<T>(
   condition: any,
 ): SelectQueryBuilder<T> {
   Object.entries(condition).forEach(([key, value]) => {
-    console.log(`${getColumnNameInEntity(sqb, key)} = :${key}`, { [key]: value });
-
     if (value === null || value === undefined) {
       return;
     }
@@ -55,7 +53,6 @@ export function addConditionToQueryBuilder<T>(
         );
       });
     } else {
-      console.log(`${getColumnNameInEntity(sqb, key)} = :${key}`, { [key]: value });
       sqb.andWhere(`${getColumnNameInEntity(sqb, key)} = :${key}`, { [key]: value });
     }
   });

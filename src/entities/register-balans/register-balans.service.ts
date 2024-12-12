@@ -40,6 +40,16 @@ export class RegisterBalansService {
     }
   }
 
+  public async getListCustomerId(manager: EntityManager): Promise<number[]> {
+    const listCustomerId = await manager
+      .createQueryBuilder(RegisterBalans, TABLE_NAME)
+      .select(`${TABLE_NAME}.customerId`)
+      .groupBy(`${TABLE_NAME}.customerId`)
+      .getMany();
+
+    return listCustomerId.map(e => e.customerId);
+  }
+
   public async createRecord(
     registerBalansDto: RegisterBalansDto,
   ): Promise<RegisterBalansResponseDto> {

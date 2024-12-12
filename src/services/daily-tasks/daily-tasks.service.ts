@@ -1,32 +1,29 @@
-import { Injectable, NotImplementedException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DailyTasksQueryDto } from './dto/daily-tasks-query.dto';
-import { getQueryParamValueAsBoolean } from '@src/utils/function.boolean';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
-import { DataSource, EntityManager, SelectQueryBuilder } from 'typeorm';
-import { RegisterBalansQueryDto } from '@src/entities/register-balans/dto/register-balsns.query.dto';
-import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans-response.dto';
-import { RegisterBalans } from '@src/entities/register-balans/register-balans.entity';
-import { TABLE_NAMES } from '@src/db/const-tables';
-import { plainToClass, plainToInstance } from 'class-transformer';
-import {
-  addConditionToQueryBuilder,
-  addSortToQueryBuilder,
-  configureSelectQueryBuilder,
-} from '@src/utils/repository/add-select-query_builder';
+import { DataSource, EntityManager } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import { DailyTasksQueryBaseDto } from './dto/daily-tasks-query.base.dto';
 import { ActiveType } from '@src/entities/register-balans/utils/types';
+import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
+import { RegisterBalansDto } from '@src/entities/register-balans/dto/register-balans.dto';
+import { MATH } from '@src/utils/math.decimal';
+import { CustomerService } from '@src/entities/customer/customer.service';
+import { FIELDS_LENGTH } from '@src/db/const-fields';
 
 @Injectable()
 export class DailyTasksService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly registerBalansService: RegisterBalansService,
+    private readonly customerService: CustomerService,
   ) {}
 
   public async processDailyReculculateBonusByDate(
     dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): Promise<void> {
+  ): Promise<CustomerResponseDto[]> {
     // RegisterBalansResponseDto[]>
+    const { all } = dailyTasksQueryBaseDto;
     const { queryOnDisabled, queryOnActivated } =
       this.transfomQueryObjForRecalc(dailyTasksQueryBaseDto);
 
@@ -45,27 +42,87 @@ export class DailyTasksService {
         ActiveType.Active,
       );
 
-      //TODO review TypeDocument !!!
-
       // const updatedCustomerIdList = new Set();
       const updatedCustomerIdList = new Set([...resultDisabled, ...resultActivated]);
-      return updatedCustomerIdList;
+
+      // if query-param "all" is true,
+      // then recalculate to all customers by amountBonus
+      // else recalculate customers by amountBonus where is implemented recalculate
+      const customerListToRecalc = await this.prepareCustomersList(
+        manager,
+        updatedCustomerIdList,
+        all,
+      );
+
+      //  recalculate bonuses
+      const updatedCustomersList = await this.recalculateCustomersBonuses(
+        manager,
+        customerListToRecalc,
+      );
+
+      return updatedCustomersList;
     });
 
-    console.log(resultTransaction);
+    return resultTransaction;
+  }
 
-    // return plainToInstance(RegisterBalansResponseDto, resultTransaction);
-    // console.log(updatedCustomerIdList);
+  private async recalculateCustomersBonuses(
+    manager: EntityManager,
+    customers: Set<number>,
+  ): Promise<CustomerResponseDto[]> {
+    const result = await Promise.all(
+      [...customers].map(customerId => this.recalculateCustomerBonusById(manager, customerId)),
+    );
 
-    // if query-param "all" is true,
-    // then recalculate to all customers by amountBonus
-    // else recalculate customers by amountBonus where is implemented recalculate
+    return result;
+  }
+
+  private async recalculateCustomerBonusById(
+    manager: EntityManager,
+    customerId: number,
+  ): Promise<CustomerResponseDto> {
+    const registerBalansListByCustomerId = await this.registerBalansService.getAllRecords(manager, {
+      customerId,
+      activeType: ActiveType.Active,
+    });
+
+    const newBonus = this.recalculateCustomerBonus(registerBalansListByCustomerId);
+
+    const updatedCustomer = await this.customerService.updateCustomerById(manager, {
+      id: customerId,
+      amountBonus: newBonus,
+    });
+
+    return updatedCustomer;
+  }
+
+  private recalculateCustomerBonus(registerBalansListForCustomer: RegisterBalansDto[]): string {
+    const newBonus = registerBalansListForCustomer.reduce((acc, registerBalansRecord) => {
+      const { bonus, usedBonus } = registerBalansRecord;
+      return acc + parseFloat(MATH.DECIMAL.subtract(bonus, usedBonus));
+    }, 0);
+
+    return newBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE);
+  }
+
+  private async prepareCustomersList(
+    manager: EntityManager,
+    customers: Set<number>,
+    all: boolean,
+  ): Promise<Set<number>> {
+    if (all) {
+      const listCustomerId = await this.registerBalansService.getListCustomerId(manager);
+
+      return new Set([...listCustomerId]);
+    }
+
+    return new Set([...customers]);
   }
 
   private transfomQueryObjForRecalc(
     queryObj: DailyTasksQueryBaseDto,
   ): Record<string, DailyTasksQueryDto> {
-    const { date, customerId, all } = queryObj;
+    const { date } = queryObj;
 
     const queryOnDisabled = plainToInstance(DailyTasksQueryDto, {
       endDate: { lte: date },
@@ -91,8 +148,6 @@ export class DailyTasksService {
       manager,
       queryByUpdate,
     );
-    console.log(queryByUpdate);
-    console.log({ ...registerBalansList });
 
     for (const e of registerBalansList) {
       const newRecord = { activeType };

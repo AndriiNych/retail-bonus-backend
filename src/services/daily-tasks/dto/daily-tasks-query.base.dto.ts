@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class DailyTasksQueryBaseDto {
   @IsOptional()
@@ -14,6 +14,6 @@ export class DailyTasksQueryBaseDto {
   customerId?: number;
 
   @IsOptional()
-  @IsString()
-  all?: string;
+  @IsBoolean()
+  all?: boolean;
 }

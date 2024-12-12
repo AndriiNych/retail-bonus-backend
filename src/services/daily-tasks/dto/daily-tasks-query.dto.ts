@@ -2,7 +2,7 @@ import { ApiClassProperties } from '@src/utils/api-class-properties.decorator';
 import { FilterBaseDateDto } from '@src/utils/filters-query-dto/dto/filters.dto';
 import { filterTransformDateDto } from '@src/utils/filters-query-dto/filterTransformObjectDto';
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 @ApiClassProperties()
 export class DailyTasksQueryDto {
@@ -45,8 +45,8 @@ export class DailyTasksQueryDto {
   endDate?: FilterBaseDateDto | Date;
 
   @IsOptional()
-  @IsString()
-  all?: string;
+  @IsBoolean()
+  all?: boolean;
 
   @IsOptional()
   @IsInt()
