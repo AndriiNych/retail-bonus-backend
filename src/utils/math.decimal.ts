@@ -12,5 +12,8 @@ export const MATH = {
 
       return result.toFixed(FIELDS_LENGTH.DECIMAL.SCALE);
     },
+    round: (value: number) => {
+      return Number(value.toFixed(FIELDS_LENGTH.DECIMAL.SCALE));
+    },
   },
 };

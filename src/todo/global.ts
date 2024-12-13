@@ -13,3 +13,5 @@
 //TODO Perhaps it makes sense to move the posting procedure to the business logic or service (the part where postings are made)?
 
 //FIXME Try using PickType from the swager module. Maybe this will help when creating swager documentation
+
+//[x] use all functions for posting receipts to registers from the general functions written for daily tasks
