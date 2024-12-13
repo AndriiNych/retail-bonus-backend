@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { DailyTasksQueryDto } from './dto/daily-tasks-query.dto';
+import { DailyTasksQueryDto } from './dto/daily-tasks.query.dto';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { DataSource, EntityManager } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { DailyTasksQueryBaseDto } from './dto/daily-tasks-query.base.dto';
+import { DailyTasksQueryBaseDto } from './dto/daily-tasks.query.base.dto';
 import { ActiveType } from '@src/entities/register-balans/utils/types';
 import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
 import { RegisterBalansDto } from '@src/entities/register-balans/dto/register-balans.dto';
@@ -12,6 +12,7 @@ import { CustomerService } from '@src/entities/customer/customer.service';
 import { FIELDS_LENGTH } from '@src/db/const-fields';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLE_NAMES } from '@src/db/const-tables';
+import { DailyTasksParamsDto } from './dto/dayly-tasks.params.dto';
 
 @Injectable()
 export class DailyTasksService {
@@ -20,6 +21,11 @@ export class DailyTasksService {
     private readonly registerBalansService: RegisterBalansService,
     private readonly customerService: CustomerService,
   ) {}
+
+  public async processDailyRecalculateCustomerByDate(
+    dailyTasksParamsDto: DailyTasksParamsDto,
+    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
+  ): Promise<void> {}
 
   public async processDailyReculculateBonusByDate(
     dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,

@@ -60,6 +60,7 @@ export class ReceiptService {
         manager,
       );
 
+      //TODO it may be necessary to change the methods so that they return only the amount of change in balances or savings, and then make a change in customer at a time
       const resultCustomer = wrapperResponseEntity(
         changedCustomer,
         CustomerResponseDto,
