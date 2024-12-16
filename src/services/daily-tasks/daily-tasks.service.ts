@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { DailyTasksQueryDto } from './dto/daily-tasks.query.dto';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { DataSource, EntityManager } from 'typeorm';
@@ -14,6 +14,8 @@ import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-respo
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { DailyTasksParamsDto } from './dto/dayly-tasks.params.dto';
 import { CustomerDto } from '@src/entities/customer/dto/customer.dto';
+import { DATE } from '@src/utils/date';
+import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/register-balans.update.short.dto';
 
 @Injectable()
 export class DailyTasksService {
@@ -47,61 +49,53 @@ export class DailyTasksService {
     manager: EntityManager,
     queryObj: DailyTasksQueryDto,
   ): Promise<CustomerDto> {
+    const { customerId } = queryObj;
     const registerBalansList = await this.registerBalansService.getAllRecords(manager, queryObj);
 
     const rbList = registerBalansList.map(item => ({
       ...item,
       activeType: ActiveType.Future,
       bonus: parseFloat(item.bonus),
-      usedBonus: parseFloat(item.usedBonus),
-      startDate: new Date(
-        item.startDate.getFullYear(),
-        item.startDate.getMonth(),
-        item.startDate.getDate(),
-      ),
-      endDate: new Date(
-        item.endDate.getFullYear(),
-        item.endDate.getMonth(),
-        item.endDate.getDate(),
-      ),
+      usedBonus: 0,
+      startDate: DATE.ONLY_DATE(item.startDate),
+      endDate: DATE.ONLY_DATE(item.endDate),
     }));
 
+    // console.log(rbList);
+
     for (let idxMain: number = 0; idxMain < rbList.length; idxMain++) {
-      const {
-        activeType,
-        documentType,
-        documentUuid,
-        documentReturnUuid,
-        bonus,
-        usedBonus,
-        startDate,
-        endDate,
-      } = rbList[idxMain];
+      // if (idxMain > 2) break;
+      const { documentType, documentUuid, startDate } = rbList[idxMain];
+      // console.log(documentType);
+
+      // do not process records that are ‘from the future’
+      if (startDate > DATE.ONLY_DATE(new Date())) {
+        continue;
+      }
 
       // close or activate record on current startDate
       for (let idx: number = 0; idx < idxMain; idx++) {
-        const {
-          activeType: activeTypeIdx,
-          // documentType:documentTypeIdx ,
-          // documentUuid: documentUuidIdx,
-          // documentReturnUuid: documentReturnUuidIdx,
-          // bonus: bonusIdx,
-          // usedBonus: usedBonusIdx,
-          // startDate: startDateIdx,
-          endDate: endDateIdx,
-        } = rbList[idx];
+        const { activeType: activeTypeIdx, endDate: endDateIdx } = rbList[idx];
+
+        if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
+          rbList[idx].activeType = ActiveType.Close;
+        }
         /* this cannot be, because the records are sorted by startDate
         if (activeTypeIdx === ActiveType.Future && startDateIdx <= startDate) {
           rbList[idx].activeType = ActiveType.Active;
         }
         */
-        if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
-          rbList[idx].activeType = ActiveType.Close;
-        }
       }
 
       if (documentType === DocumentType.Receipt) {
-        //TODO implement
+        rbList[idxMain].activeType = ActiveType.Active;
+        // for (let idx = 0; idx < rbList.length; idx++) {
+        //   const { documentReturnUuid: documentReturnUuidIdx, usedBonus: usedBonusIdx } =
+        //     rbList[idx];
+        //   if (documentUuid === documentReturnUuidIdx) {
+        //     rbList[idxMain].usedBonus = rbList[idxMain].usedBonus + usedBonusIdx;
+        //   }
+        // }
       }
 
       /*
@@ -111,8 +105,10 @@ export class DailyTasksService {
       */
 
       if ([DocumentType.SpentBonus, DocumentType.RemoveBonus].includes(documentType)) {
+        console.log('DocumentType.SpentBonus');
         rbList[idxMain].activeType = ActiveType.Close;
         let spentBonus = rbList[idxMain].bonus;
+        // console.log(`spentBonus: ${spentBonus}, idx: ${idxMain}`);
 
         for (let idx: number = 0; idx < idxMain; idx++) {
           const {
@@ -123,32 +119,90 @@ export class DailyTasksService {
           } = rbList[idx];
 
           const subBonusIdx = MATH.DECIMAL.round(bonusIdx - usedBonusIdx);
+          console.log(
+            `idx: ${idx}, activeTypeIdx: ${activeTypeIdx}, documentTypeIdx: ${documentTypeIdx}, subBonusIdx: ${subBonusIdx}`,
+          );
           if (
             spentBonus > 0 &&
-            activeTypeIdx !== ActiveType.Active &&
+            activeTypeIdx === ActiveType.Active &&
             [DocumentType.Receipt, DocumentType.AddBonus].includes(documentTypeIdx) &&
             subBonusIdx > 0
           ) {
             if (subBonusIdx < spentBonus) {
               rbList[idx].usedBonus = bonusIdx;
-              spentBonus = spentBonus - subBonusIdx;
+              spentBonus = MATH.DECIMAL.round(spentBonus - subBonusIdx);
+              console.log(
+                `1! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
+              );
             } else if (subBonusIdx > spentBonus) {
-              rbList[idx].usedBonus = usedBonusIdx + spentBonus;
+              rbList[idx].usedBonus = MATH.DECIMAL.round(usedBonusIdx + spentBonus);
               spentBonus = 0;
+              console.log(
+                `2! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
+              );
             } else {
               rbList[idx].usedBonus = bonusIdx;
               spentBonus = 0;
+              console.log(
+                `3! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
+              );
             }
           }
         }
       }
     }
+    // console.log('recalculating data');
+    // console.log(rbList);
 
-    // let newAmountBonus: number = 0;
+    // update changes in register_balans
+    const listForUpdate = rbList
+      .filter((item, idx) => {
+        const { activeType, bonus, usedBonus } = registerBalansList[idx];
+        return (
+          item.activeType !== activeType ||
+          item.bonus !== parseFloat(bonus) ||
+          item.usedBonus !== parseFloat(usedBonus)
+        );
+      })
+      .map(({ id, activeType, bonus, usedBonus }) => ({
+        id,
+        activeType,
+        bonus: bonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
+        usedBonus: usedBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
+      }));
 
-    // const newBonus =
+    // console.log(`listForUpdate.length: ${listForUpdate.length}`);
+    if (listForUpdate.length > 0) {
+      const updateRegisterBalans = async (
+        manager: EntityManager,
+        registerBalansUpdateShortDto: RegisterBalansUpdateShortDto,
+      ): Promise<void> => {
+        const { id, ...registryBalansUpdateDto } = registerBalansUpdateShortDto;
+        await this.registerBalansService.updateRegisterBalansById(
+          manager,
+          id,
+          registryBalansUpdateDto,
+        );
+      };
 
-    return await this.customerService.getCustomerById(queryObj.customerId);
+      await Promise.all([...listForUpdate].map(item => updateRegisterBalans(manager, item)));
+    }
+
+    // update changes in customer
+    let updatedCustomer: CustomerResponseDto;
+    if (rbList.length > 0) {
+      const newAmountBonus = rbList.reduce(
+        (acc, item) =>
+          acc + item.activeType === ActiveType.Active ? item.bonus - item.usedBonus : 0,
+        0,
+      );
+      updatedCustomer = await this.customerService.updateCustomerById(manager, {
+        id: customerId,
+        amountBonus: newAmountBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
+      });
+    }
+
+    return updatedCustomer;
   }
 
   public async processDailyReculculateBonusByDate(

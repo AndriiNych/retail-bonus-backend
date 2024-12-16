@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ActiveType, DocumentType } from '@src/entities/register-balans/utils/types';
 import { BONUS } from '@src/utils/bonus';
 
 @Injectable()
@@ -6,7 +7,14 @@ export class SettingService {
   constructor() {}
 
   public getSettings() {
-    return { settings: { ...this.getSettingsBonus(), ...this.getSettingsEnv() } };
+    return {
+      settings: {
+        ...this.getSettingsBonus(),
+        ...this.getSettingsEnv(),
+        ...this.getActiveType(),
+        ...this.getDocumentType(),
+      },
+    };
   }
 
   private getSettingsBonus() {
@@ -24,5 +32,13 @@ export class SettingService {
         start_date: process.env.START_DATE,
       },
     };
+  }
+
+  private getActiveType() {
+    return { activeType: { ...ActiveType } };
+  }
+
+  private getDocumentType() {
+    return { documentType: { ...DocumentType } };
   }
 }

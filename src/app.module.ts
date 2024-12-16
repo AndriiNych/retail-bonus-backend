@@ -13,7 +13,7 @@ import { ReceiptModule } from './entities/receipt/receipt.module';
 import { RegisterBalansModule } from './entities/register-balans/register-balans.module';
 import { RegisterSavingModule } from './entities/register-saving/register-saving.module';
 import { DailyTasksModule } from './services/daily-tasks/daily-tasks.module';
-import { SettingModule } from './entities/setting/setting.module';
+import { SettingModule } from './services/setting/setting.module';
 
 @Module({
   imports: [
