@@ -1,5 +1,4 @@
 import { NotImplementedException } from '@nestjs/common';
-import { DocumentType } from '@src/entities/register-balans/utils/types';
 import { SelectQueryBuilder } from 'typeorm';
 
 const CONDITIONAL_STATEMENTS = {
@@ -13,6 +12,7 @@ const CONDITIONAL_STATEMENTS = {
 export function configureSelectQueryBuilder<T>(
   sqb: SelectQueryBuilder<T>,
   queryString: any,
+  additionalObj?: any,
 ): SelectQueryBuilder<T> {
   const { sort: sortObj, page, limit, ...whereObj } = queryString;
 
@@ -20,9 +20,7 @@ export function configureSelectQueryBuilder<T>(
 
   addSortToQueryBuilder(sqb, sortObj);
 
-  sqb.addOrderBy(
-    `CASE WHEN register_balans.document_type = ${DocumentType.Receipt} THEN 1 WHEN register_balans.document_type = ${DocumentType.AddBonus} THEN 2 WHEN register_balans.document_type = ${DocumentType.ReceiptForReturn} THEN 3 WHEN register_balans.document_type = ${DocumentType.RemoveBonus} THEN 4 WHEN register_balans.document_type = ${DocumentType.SpentBonus} THEN 5 ELSE 100 END `,
-  );
+  if (additionalObj?.addSort) sqb.addOrderBy(additionalObj.addSort);
 
   if (page && limit) {
     sqb.skip((page - 1) * limit);

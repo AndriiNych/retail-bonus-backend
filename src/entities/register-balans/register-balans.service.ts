@@ -28,10 +28,11 @@ export class RegisterBalansService {
   public async getAllRecords(
     manager: EntityManager,
     queryObj: any,
+    additionalObj?: any,
   ): Promise<RegisterBalansResponseDto[]> {
     const sqb = manager.createQueryBuilder(RegisterBalans, TABLE_NAME);
 
-    configureSelectQueryBuilder(sqb, queryObj);
+    configureSelectQueryBuilder(sqb, queryObj, additionalObj);
 
     try {
       return await sqb.getMany();

@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DailyTasksQueryDto } from './dto/daily-tasks.query.dto';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { DataSource, EntityManager } from 'typeorm';
@@ -13,22 +13,27 @@ import { FIELDS_LENGTH } from '@src/db/const-fields';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { DailyTasksParamsDto } from './dto/dayly-tasks.params.dto';
-import { CustomerDto } from '@src/entities/customer/dto/customer.dto';
 import { DATE } from '@src/utils/date';
 import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/register-balans.update.short.dto';
 
 @Injectable()
 export class DailyTasksService {
+  private fetchRegisterBalansList: RegisterBalansDto[];
+  private rbList: any[];
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly registerBalansService: RegisterBalansService,
     private readonly customerService: CustomerService,
-  ) {}
+  ) {
+    this.fetchRegisterBalansList = [];
+    this.rbList = [];
+  }
 
   public async processDailyRecalculateCustomerByDate(
     dailyTasksParamsDto: DailyTasksParamsDto,
     dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): Promise<CustomerDto> {
+  ): Promise<Record<string, CustomerResponseDto[]>> {
     const { customerId } = dailyTasksParamsDto;
     const { date } = dailyTasksQueryBaseDto;
 
@@ -48,116 +53,49 @@ export class DailyTasksService {
   private async recalculateCustomerBonusHistory(
     manager: EntityManager,
     queryObj: DailyTasksQueryDto,
-  ): Promise<CustomerDto> {
+  ): Promise<Record<string, CustomerResponseDto[]>> {
+    await this.prepareListsRegisterBalansForCalculate(manager, queryObj);
+
+    console.log(this.fetchRegisterBalansList);
+
+    this.makeToRecalculateRegisterBalans();
+
+    await this.updateAllChangesInRegisterBalans(manager);
+
+    const updatedCustomer = await this.saveNewBalansToCustomer(manager, queryObj);
+
+    return wrapperResponseEntity(updatedCustomer, CustomerResponseDto, TABLE_NAMES.customer);
+  }
+
+  private async saveNewBalansToCustomer(
+    manager: EntityManager,
+    queryObj: DailyTasksQueryDto,
+  ): Promise<CustomerResponseDto> {
     const { customerId } = queryObj;
-    const registerBalansList = await this.registerBalansService.getAllRecords(manager, queryObj);
-
-    const rbList = registerBalansList.map(item => ({
-      ...item,
-      activeType: ActiveType.Future,
-      bonus: parseFloat(item.bonus),
-      usedBonus: 0,
-      startDate: DATE.ONLY_DATE(item.startDate),
-      endDate: DATE.ONLY_DATE(item.endDate),
-    }));
-
-    // console.log(rbList);
-
-    for (let idxMain: number = 0; idxMain < rbList.length; idxMain++) {
-      // if (idxMain > 2) break;
-      const { documentType, documentUuid, startDate } = rbList[idxMain];
-      // console.log(documentType);
-
-      // do not process records that are ‘from the future’
-      if (startDate > DATE.ONLY_DATE(new Date())) {
-        continue;
-      }
-
-      // close or activate record on current startDate
-      for (let idx: number = 0; idx < idxMain; idx++) {
-        const { activeType: activeTypeIdx, endDate: endDateIdx } = rbList[idx];
-
-        if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
-          rbList[idx].activeType = ActiveType.Close;
+    const newAmountBonus = this.rbList
+      .reduce((acc, { activeType, documentType, bonus, usedBonus }) => {
+        let result: number = 0;
+        if (
+          activeType === ActiveType.Active &&
+          [DocumentType.Receipt, DocumentType.AddBonus].includes(documentType)
+        ) {
+          result = bonus - usedBonus;
         }
-        /* this cannot be, because the records are sorted by startDate
-        if (activeTypeIdx === ActiveType.Future && startDateIdx <= startDate) {
-          rbList[idx].activeType = ActiveType.Active;
-        }
-        */
-      }
+        return acc + result;
+      }, 0)
+      .toFixed(FIELDS_LENGTH.DECIMAL.SCALE);
 
-      if (documentType === DocumentType.Receipt) {
-        rbList[idxMain].activeType = ActiveType.Active;
-        // for (let idx = 0; idx < rbList.length; idx++) {
-        //   const { documentReturnUuid: documentReturnUuidIdx, usedBonus: usedBonusIdx } =
-        //     rbList[idx];
-        //   if (documentUuid === documentReturnUuidIdx) {
-        //     rbList[idxMain].usedBonus = rbList[idxMain].usedBonus + usedBonusIdx;
-        //   }
-        // }
-      }
+    return await this.customerService.updateCustomerById(manager, {
+      id: customerId,
+      amountBonus: newAmountBonus,
+    });
+  }
 
-      /*
-      // not do anything, because it is enough to change the activeType
-      if (documentType === DocumentType.ReceiptForReturn) { }
-      if (documentType === DocumentType.AddBonus) { }
-      */
-
-      if ([DocumentType.SpentBonus, DocumentType.RemoveBonus].includes(documentType)) {
-        console.log('DocumentType.SpentBonus');
-        rbList[idxMain].activeType = ActiveType.Close;
-        let spentBonus = rbList[idxMain].bonus;
-        // console.log(`spentBonus: ${spentBonus}, idx: ${idxMain}`);
-
-        for (let idx: number = 0; idx < idxMain; idx++) {
-          const {
-            activeType: activeTypeIdx,
-            documentType: documentTypeIdx,
-            bonus: bonusIdx,
-            usedBonus: usedBonusIdx,
-          } = rbList[idx];
-
-          const subBonusIdx = MATH.DECIMAL.round(bonusIdx - usedBonusIdx);
-          console.log(
-            `idx: ${idx}, activeTypeIdx: ${activeTypeIdx}, documentTypeIdx: ${documentTypeIdx}, subBonusIdx: ${subBonusIdx}`,
-          );
-          if (
-            spentBonus > 0 &&
-            activeTypeIdx === ActiveType.Active &&
-            [DocumentType.Receipt, DocumentType.AddBonus].includes(documentTypeIdx) &&
-            subBonusIdx > 0
-          ) {
-            if (subBonusIdx < spentBonus) {
-              rbList[idx].usedBonus = bonusIdx;
-              spentBonus = MATH.DECIMAL.round(spentBonus - subBonusIdx);
-              console.log(
-                `1! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
-              );
-            } else if (subBonusIdx > spentBonus) {
-              rbList[idx].usedBonus = MATH.DECIMAL.round(usedBonusIdx + spentBonus);
-              spentBonus = 0;
-              console.log(
-                `2! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
-              );
-            } else {
-              rbList[idx].usedBonus = bonusIdx;
-              spentBonus = 0;
-              console.log(
-                `3! spentBonus: ${spentBonus}, subBonus: ${subBonusIdx}, usedBonus: ${rbList[idx].usedBonus}`,
-              );
-            }
-          }
-        }
-      }
-    }
-    // console.log('recalculating data');
-    // console.log(rbList);
-
-    // update changes in register_balans
-    const listForUpdate = rbList
+  private async updateAllChangesInRegisterBalans(manager: EntityManager) {
+    // creating a list of changed records to update
+    const listForUpdate = this.rbList
       .filter((item, idx) => {
-        const { activeType, bonus, usedBonus } = registerBalansList[idx];
+        const { activeType, bonus, usedBonus } = this.fetchRegisterBalansList[idx];
         return (
           item.activeType !== activeType ||
           item.bonus !== parseFloat(bonus) ||
@@ -171,10 +109,8 @@ export class DailyTasksService {
         usedBonus: usedBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
       }));
 
-    // console.log(`listForUpdate.length: ${listForUpdate.length}`);
     if (listForUpdate.length > 0) {
       const updateRegisterBalans = async (
-        manager: EntityManager,
         registerBalansUpdateShortDto: RegisterBalansUpdateShortDto,
       ): Promise<void> => {
         const { id, ...registryBalansUpdateDto } = registerBalansUpdateShortDto;
@@ -185,24 +121,116 @@ export class DailyTasksService {
         );
       };
 
-      await Promise.all([...listForUpdate].map(item => updateRegisterBalans(manager, item)));
+      await Promise.all(listForUpdate.map(updateRegisterBalans));
     }
+  }
 
-    // update changes in customer
-    let updatedCustomer: CustomerResponseDto;
-    if (rbList.length > 0) {
-      const newAmountBonus = rbList.reduce(
-        (acc, item) =>
-          acc + item.activeType === ActiveType.Active ? item.bonus - item.usedBonus : 0,
-        0,
-      );
-      updatedCustomer = await this.customerService.updateCustomerById(manager, {
-        id: customerId,
-        amountBonus: newAmountBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
-      });
+  private makeToRecalculateRegisterBalans() {
+    for (let idxMain: number = 0; idxMain < this.rbList.length; idxMain++) {
+      const { documentType, documentUuid, startDate } = this.rbList[idxMain];
+
+      // close or activate record on current startDate
+      for (let idx: number = 0; idx < idxMain; idx++) {
+        const { activeType: activeTypeIdx, endDate: endDateIdx } = this.rbList[idx];
+
+        if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
+          this.rbList[idx].activeType = ActiveType.Close;
+        }
+        /* this cannot be, because the records are sorted by startDate
+        if (activeTypeIdx === ActiveType.Future && startDateIdx <= startDate) {
+          rbList[idx].activeType = ActiveType.Active;
+        }
+        */
+      }
+
+      if (documentType === DocumentType.Receipt) {
+        this.rbList[idxMain].activeType = ActiveType.Active;
+
+        this.rbList
+          .filter(
+            ({ documentReturnUuid, documentType }) =>
+              documentReturnUuid === documentUuid && documentType === DocumentType.ReceiptForReturn,
+          )
+          .forEach(({ bonus }) => {
+            this.rbList[idxMain].usedBonus = this.rbList[idxMain].usedBonus + bonus;
+          });
+      }
+
+      if (documentType === DocumentType.ReceiptForReturn) {
+        this.rbList[idxMain].activeType = ActiveType.Close;
+      }
+
+      if (documentType === DocumentType.AddBonus) {
+        this.rbList[idxMain].activeType = ActiveType.Active;
+      }
+
+      if ([DocumentType.SpentBonus, DocumentType.RemoveBonus].includes(documentType)) {
+        this.rbList[idxMain].activeType = ActiveType.Close;
+        let spentBonus = this.rbList[idxMain].bonus;
+
+        for (let idx: number = 0; idx < idxMain; idx++) {
+          const {
+            activeType: activeTypeIdx,
+            documentType: documentTypeIdx,
+            bonus: bonusIdx,
+            usedBonus: usedBonusIdx,
+          } = this.rbList[idx];
+
+          const subBonusIdx = MATH.DECIMAL.round(bonusIdx - usedBonusIdx);
+          if (
+            spentBonus > 0 &&
+            activeTypeIdx === ActiveType.Active &&
+            [DocumentType.Receipt, DocumentType.AddBonus].includes(documentTypeIdx) &&
+            subBonusIdx > 0
+          ) {
+            if (subBonusIdx < spentBonus) {
+              this.rbList[idx].usedBonus = bonusIdx;
+              spentBonus = MATH.DECIMAL.round(spentBonus - subBonusIdx);
+            } else if (subBonusIdx > spentBonus) {
+              this.rbList[idx].usedBonus = MATH.DECIMAL.round(usedBonusIdx + spentBonus);
+              spentBonus = 0;
+            } else {
+              this.rbList[idx].usedBonus = bonusIdx;
+              spentBonus = 0;
+            }
+          }
+        }
+      }
     }
+  }
 
-    return updatedCustomer;
+  private async prepareListsRegisterBalansForCalculate(
+    manager: EntityManager,
+    queryObj: DailyTasksQueryDto,
+  ): Promise<void> {
+    const { customerId } = queryObj;
+    const additionalObj = {
+      addSort: `
+      CASE 
+      WHEN register_balans.document_type = ${DocumentType.Receipt} THEN 1 
+      WHEN register_balans.document_type = ${DocumentType.AddBonus} THEN 2 
+      WHEN register_balans.document_type = ${DocumentType.ReceiptForReturn} THEN 3 
+      WHEN register_balans.document_type = ${DocumentType.RemoveBonus} THEN 4 
+      WHEN register_balans.document_type = ${DocumentType.SpentBonus} THEN 5 
+      ELSE 100 
+      END `,
+    };
+
+    const registerBalansList = await this.registerBalansService.getAllRecords(
+      manager,
+      queryObj,
+      additionalObj,
+    );
+    this.fetchRegisterBalansList = [...registerBalansList];
+
+    this.rbList = registerBalansList.map(item => ({
+      ...item,
+      activeType: ActiveType.Future,
+      bonus: parseFloat(item.bonus),
+      usedBonus: 0,
+      startDate: DATE.ONLY_DATE(item.startDate),
+      endDate: DATE.ONLY_DATE(item.endDate),
+    }));
   }
 
   public async processDailyReculculateBonusByDate(
