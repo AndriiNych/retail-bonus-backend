@@ -14,7 +14,7 @@ import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
 import { isBonusEnough } from '@src/utils/check/isBonusEnough';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
-import { configureSelectQueryBuilder } from '@src/utils/repository/add-select-query_builder';
+import { configureSelectQueryBuilder } from '@src/utils/filters-query-dto/add-select-query_builder';
 
 const TABLE_NAME = TABLE_NAMES.register_balans;
 @Injectable()
@@ -28,11 +28,10 @@ export class RegisterBalansService {
   public async getAllRecords(
     manager: EntityManager,
     queryObj: any,
-    additionalObj?: any,
   ): Promise<RegisterBalansResponseDto[]> {
     const sqb = manager.createQueryBuilder(RegisterBalans, TABLE_NAME);
 
-    configureSelectQueryBuilder(sqb, queryObj, additionalObj);
+    configureSelectQueryBuilder(sqb, queryObj);
 
     try {
       return await sqb.getMany();

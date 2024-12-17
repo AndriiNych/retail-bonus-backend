@@ -6,7 +6,6 @@ import { plainToInstance } from 'class-transformer';
 import { DailyTasksQueryBaseDto } from './dto/daily-tasks.query.base.dto';
 import { ActiveType, DocumentType } from '@src/entities/register-balans/utils/types';
 import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
-import { RegisterBalansDto } from '@src/entities/register-balans/dto/register-balans.dto';
 import { MATH } from '@src/utils/math.decimal';
 import { CustomerService } from '@src/entities/customer/customer.service';
 import { FIELDS_LENGTH } from '@src/db/const-fields';
@@ -15,10 +14,12 @@ import { TABLE_NAMES } from '@src/db/const-tables';
 import { DailyTasksParamsDto } from './dto/dayly-tasks.params.dto';
 import { DATE } from '@src/utils/date';
 import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/register-balans.update.short.dto';
+import { SelectQueryBuilderBaseDto } from '@src/utils/filters-query-dto/dto/select-query-builder.base.dto';
+import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans-response.dto';
 
 @Injectable()
 export class DailyTasksService {
-  private fetchRegisterBalansList: RegisterBalansDto[];
+  private fetchRegisterBalansList: RegisterBalansResponseDto[];
   private rbList: any[];
 
   constructor(
@@ -34,15 +35,11 @@ export class DailyTasksService {
     dailyTasksParamsDto: DailyTasksParamsDto,
     dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
   ): Promise<Record<string, CustomerResponseDto[]>> {
-    const { customerId } = dailyTasksParamsDto;
-    const { date } = dailyTasksQueryBaseDto;
-
     const updatedCustomer = await this.dataSource.transaction(async manager => {
-      const queryOnActivated = plainToInstance(DailyTasksQueryDto, {
-        startDate: { lte: date },
-        customerId,
-        sort: { startDate: 'ASC', endDate: 'ASC' },
-      });
+      const queryOnActivated = this.createSelectQueryBuilderObj(
+        dailyTasksParamsDto,
+        dailyTasksQueryBaseDto,
+      );
 
       return await this.recalculateCustomerBonusHistory(manager, queryOnActivated);
     });
@@ -50,17 +47,38 @@ export class DailyTasksService {
     return updatedCustomer;
   }
 
+  private createSelectQueryBuilderObj(
+    dailyTasksParamsDto: DailyTasksParamsDto,
+    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
+  ): SelectQueryBuilderBaseDto {
+    const { customerId } = dailyTasksParamsDto;
+    const { date } = dailyTasksQueryBaseDto;
+
+    return plainToInstance(SelectQueryBuilderBaseDto, {
+      conditions: { startDate: { lte: date }, customerId },
+      orderBy: { startDate: 'ASC', endDate: 'ASC' },
+      addOrderBy: `CASE 
+          WHEN register_balans.document_type = ${DocumentType.Receipt} THEN 1 
+          WHEN register_balans.document_type = ${DocumentType.AddBonus} THEN 2 
+          WHEN register_balans.document_type = ${DocumentType.ReceiptForReturn} THEN 3 
+          WHEN register_balans.document_type = ${DocumentType.RemoveBonus} THEN 4 
+          WHEN register_balans.document_type = ${DocumentType.SpentBonus} THEN 5 
+          ELSE 100 
+        END `,
+    });
+  }
+
   private async recalculateCustomerBonusHistory(
     manager: EntityManager,
-    queryObj: DailyTasksQueryDto,
+    queryObj: SelectQueryBuilderBaseDto,
   ): Promise<Record<string, CustomerResponseDto[]>> {
     await this.prepareListsRegisterBalansForCalculate(manager, queryObj);
 
-    console.log(this.fetchRegisterBalansList);
-
     this.makeToRecalculateRegisterBalans();
 
-    await this.updateAllChangesInRegisterBalans(manager);
+    const listForUpdate = this.createListRecordsForUpdateToregisterBalans();
+
+    await this.updateAllChangesInRegisterBalans(manager, listForUpdate);
 
     const updatedCustomer = await this.saveNewBalansToCustomer(manager, queryObj);
 
@@ -69,9 +87,11 @@ export class DailyTasksService {
 
   private async saveNewBalansToCustomer(
     manager: EntityManager,
-    queryObj: DailyTasksQueryDto,
+    queryObj: SelectQueryBuilderBaseDto,
   ): Promise<CustomerResponseDto> {
-    const { customerId } = queryObj;
+    const {
+      conditions: { customerId },
+    } = queryObj;
     const newAmountBonus = this.rbList
       .reduce((acc, { activeType, documentType, bonus, usedBonus }) => {
         let result: number = 0;
@@ -91,15 +111,18 @@ export class DailyTasksService {
     });
   }
 
-  private async updateAllChangesInRegisterBalans(manager: EntityManager) {
-    // creating a list of changed records to update
-    const listForUpdate = this.rbList
+  private createListRecordsForUpdateToregisterBalans(): RegisterBalansUpdateShortDto[] {
+    return this.rbList
       .filter((item, idx) => {
-        const { activeType, bonus, usedBonus } = this.fetchRegisterBalansList[idx];
+        const {
+          activeType: activeTypeOld,
+          bonus: bonusOld,
+          usedBonus: usedBonusOld,
+        } = this.fetchRegisterBalansList[idx];
         return (
-          item.activeType !== activeType ||
-          item.bonus !== parseFloat(bonus) ||
-          item.usedBonus !== parseFloat(usedBonus)
+          item.activeType !== activeTypeOld ||
+          item.bonus !== parseFloat(bonusOld) ||
+          item.usedBonus !== parseFloat(usedBonusOld)
         );
       })
       .map(({ id, activeType, bonus, usedBonus }) => ({
@@ -108,7 +131,12 @@ export class DailyTasksService {
         bonus: bonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
         usedBonus: usedBonus.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
       }));
+  }
 
+  private async updateAllChangesInRegisterBalans(
+    manager: EntityManager,
+    listForUpdate: RegisterBalansUpdateShortDto[],
+  ): Promise<void> {
     if (listForUpdate.length > 0) {
       const updateRegisterBalans = async (
         registerBalansUpdateShortDto: RegisterBalansUpdateShortDto,
@@ -127,100 +155,103 @@ export class DailyTasksService {
 
   private makeToRecalculateRegisterBalans() {
     for (let idxMain: number = 0; idxMain < this.rbList.length; idxMain++) {
-      const { documentType, documentUuid, startDate } = this.rbList[idxMain];
+      const { documentType } = this.rbList[idxMain];
 
-      // close or activate record on current startDate
-      for (let idx: number = 0; idx < idxMain; idx++) {
-        const { activeType: activeTypeIdx, endDate: endDateIdx } = this.rbList[idx];
+      this.closeOrActivateRecordsFromPreviousPeriod(idxMain);
 
-        if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
-          this.rbList[idx].activeType = ActiveType.Close;
-        }
-        /* this cannot be, because the records are sorted by startDate
-        if (activeTypeIdx === ActiveType.Future && startDateIdx <= startDate) {
-          rbList[idx].activeType = ActiveType.Active;
-        }
-        */
-      }
+      this.processingCurrentRegisterBalansRecordByType[documentType](idxMain);
+    }
+  }
 
-      if (documentType === DocumentType.Receipt) {
-        this.rbList[idxMain].activeType = ActiveType.Active;
+  private processingCurrentRegisterBalansRecordByType = {
+    [DocumentType.Receipt]: (currentIdx: number): void =>
+      this.processingOfRecordIfTypeAsReceipt(currentIdx),
+    [DocumentType.ReceiptForReturn]: (currentIdx: number): void =>
+      this.processingOfRecordIfTypeAsReceiptForReturn(currentIdx),
+    [DocumentType.AddBonus]: (currentIdx: number): void =>
+      this.processingOfRecordIfTypeAsAddBonus(currentIdx),
+    [DocumentType.SpentBonus]: (currentIdx: number): void =>
+      this.processingOfRecordIfTypeAsSpentAndRemoveBonus(currentIdx),
+    [DocumentType.RemoveBonus]: (currentIdx: number): void =>
+      this.processingOfRecordIfTypeAsSpentAndRemoveBonus(currentIdx),
+  };
 
-        this.rbList
-          .filter(
-            ({ documentReturnUuid, documentType }) =>
-              documentReturnUuid === documentUuid && documentType === DocumentType.ReceiptForReturn,
-          )
-          .forEach(({ bonus }) => {
-            this.rbList[idxMain].usedBonus = this.rbList[idxMain].usedBonus + bonus;
-          });
-      }
+  private processingOfRecordIfTypeAsSpentAndRemoveBonus(currentIdx: number): void {
+    this.rbList[currentIdx].activeType = ActiveType.Close;
+    let spentBonus = this.rbList[currentIdx].bonus;
 
-      if (documentType === DocumentType.ReceiptForReturn) {
-        this.rbList[idxMain].activeType = ActiveType.Close;
-      }
+    for (let idx: number = 0; idx < currentIdx; idx++) {
+      const {
+        activeType: activeTypeIdx,
+        documentType: documentTypeIdx,
+        bonus: bonusIdx,
+        usedBonus: usedBonusIdx,
+      } = this.rbList[idx];
 
-      if (documentType === DocumentType.AddBonus) {
-        this.rbList[idxMain].activeType = ActiveType.Active;
-      }
-
-      if ([DocumentType.SpentBonus, DocumentType.RemoveBonus].includes(documentType)) {
-        this.rbList[idxMain].activeType = ActiveType.Close;
-        let spentBonus = this.rbList[idxMain].bonus;
-
-        for (let idx: number = 0; idx < idxMain; idx++) {
-          const {
-            activeType: activeTypeIdx,
-            documentType: documentTypeIdx,
-            bonus: bonusIdx,
-            usedBonus: usedBonusIdx,
-          } = this.rbList[idx];
-
-          const subBonusIdx = MATH.DECIMAL.round(bonusIdx - usedBonusIdx);
-          if (
-            spentBonus > 0 &&
-            activeTypeIdx === ActiveType.Active &&
-            [DocumentType.Receipt, DocumentType.AddBonus].includes(documentTypeIdx) &&
-            subBonusIdx > 0
-          ) {
-            if (subBonusIdx < spentBonus) {
-              this.rbList[idx].usedBonus = bonusIdx;
-              spentBonus = MATH.DECIMAL.round(spentBonus - subBonusIdx);
-            } else if (subBonusIdx > spentBonus) {
-              this.rbList[idx].usedBonus = MATH.DECIMAL.round(usedBonusIdx + spentBonus);
-              spentBonus = 0;
-            } else {
-              this.rbList[idx].usedBonus = bonusIdx;
-              spentBonus = 0;
-            }
-          }
+      const subBonusIdx = MATH.DECIMAL.round(bonusIdx - usedBonusIdx);
+      if (
+        spentBonus > 0 &&
+        activeTypeIdx === ActiveType.Active &&
+        [DocumentType.Receipt, DocumentType.AddBonus].includes(documentTypeIdx) &&
+        subBonusIdx > 0
+      ) {
+        if (subBonusIdx < spentBonus) {
+          this.rbList[idx].usedBonus = bonusIdx;
+          spentBonus = MATH.DECIMAL.round(spentBonus - subBonusIdx);
+        } else if (subBonusIdx > spentBonus) {
+          this.rbList[idx].usedBonus = MATH.DECIMAL.round(usedBonusIdx + spentBonus);
+          spentBonus = 0;
+        } else {
+          this.rbList[idx].usedBonus = bonusIdx;
+          spentBonus = 0;
         }
       }
     }
   }
 
+  private processingOfRecordIfTypeAsAddBonus(currentIdx: number): void {
+    this.rbList[currentIdx].activeType = ActiveType.Active;
+  }
+
+  private processingOfRecordIfTypeAsReceiptForReturn(currentIdx: number): void {
+    this.rbList[currentIdx].activeType = ActiveType.Close;
+  }
+
+  private processingOfRecordIfTypeAsReceipt(currentIdx: number): void {
+    const { documentUuid } = this.rbList[currentIdx];
+    this.rbList[currentIdx].activeType = ActiveType.Active;
+
+    this.rbList
+      .filter(
+        ({ documentReturnUuid, documentType }) =>
+          documentReturnUuid === documentUuid && documentType === DocumentType.ReceiptForReturn,
+      )
+      .forEach(({ bonus }) => {
+        this.rbList[currentIdx].usedBonus = this.rbList[currentIdx].usedBonus + bonus;
+      });
+  }
+
+  private closeOrActivateRecordsFromPreviousPeriod(currentIdx: number) {
+    const { startDate } = this.fetchRegisterBalansList[currentIdx];
+    for (let idx: number = 0; idx < currentIdx; idx++) {
+      const { activeType: activeTypeIdx, endDate: endDateIdx } = this.rbList[idx];
+
+      if (activeTypeIdx === ActiveType.Active && endDateIdx <= startDate) {
+        this.rbList[idx].activeType = ActiveType.Close;
+      }
+      /* this cannot be, because the records are sorted by startDate
+      if (activeTypeIdx === ActiveType.Future && startDateIdx <= startDate) {
+        rbList[idx].activeType = ActiveType.Active;
+      }
+      */
+    }
+  }
+
   private async prepareListsRegisterBalansForCalculate(
     manager: EntityManager,
-    queryObj: DailyTasksQueryDto,
+    queryObj: SelectQueryBuilderBaseDto,
   ): Promise<void> {
-    const { customerId } = queryObj;
-    const additionalObj = {
-      addSort: `
-      CASE 
-      WHEN register_balans.document_type = ${DocumentType.Receipt} THEN 1 
-      WHEN register_balans.document_type = ${DocumentType.AddBonus} THEN 2 
-      WHEN register_balans.document_type = ${DocumentType.ReceiptForReturn} THEN 3 
-      WHEN register_balans.document_type = ${DocumentType.RemoveBonus} THEN 4 
-      WHEN register_balans.document_type = ${DocumentType.SpentBonus} THEN 5 
-      ELSE 100 
-      END `,
-    };
-
-    const registerBalansList = await this.registerBalansService.getAllRecords(
-      manager,
-      queryObj,
-      additionalObj,
-    );
+    const registerBalansList = await this.registerBalansService.getAllRecords(manager, queryObj);
     this.fetchRegisterBalansList = [...registerBalansList];
 
     this.rbList = registerBalansList.map(item => ({
@@ -309,7 +340,9 @@ export class DailyTasksService {
     return updatedCustomer;
   }
 
-  private recalculateCustomerBonus(registerBalansListForCustomer: RegisterBalansDto[]): string {
+  private recalculateCustomerBonus(
+    registerBalansListForCustomer: RegisterBalansResponseDto[],
+  ): string {
     const newBonus = registerBalansListForCustomer.reduce((acc, registerBalansRecord) => {
       const { bonus, usedBonus } = registerBalansRecord;
       return acc + parseFloat(MATH.DECIMAL.subtract(bonus, usedBonus));

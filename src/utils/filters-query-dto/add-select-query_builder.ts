@@ -1,5 +1,6 @@
 import { NotImplementedException } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
+import { SelectQueryBuilderBaseDto } from './dto/select-query-builder.base.dto';
 
 const CONDITIONAL_STATEMENTS = {
   ne: '!=',
@@ -11,26 +12,29 @@ const CONDITIONAL_STATEMENTS = {
 
 export function configureSelectQueryBuilder<T>(
   sqb: SelectQueryBuilder<T>,
-  queryString: any,
-  additionalObj?: any,
+  queryString: SelectQueryBuilderBaseDto,
 ): SelectQueryBuilder<T> {
-  const { sort: sortObj, page, limit, ...whereObj } = queryString;
+  const { conditions, orderBy, addOrderBy, pagination } = queryString;
 
-  addConditionToQueryBuilder(sqb, whereObj);
+  if (conditions) addConditionToQueryBuilder(sqb, conditions);
 
-  addSortToQueryBuilder(sqb, sortObj);
+  if (orderBy) addSortToQueryBuilder(sqb, orderBy);
 
-  if (additionalObj?.addSort) sqb.addOrderBy(additionalObj.addSort);
+  if (addOrderBy) sqb.addOrderBy(addOrderBy);
 
-  if (page && limit) {
-    sqb.skip((page - 1) * limit);
-    sqb.take(limit);
+  if (pagination) {
+    const { page, limit } = pagination;
+
+    if (page && limit) {
+      sqb.skip((page - 1) * limit);
+      sqb.take(limit);
+    }
   }
 
   return sqb;
 }
 
-export function addConditionToQueryBuilder<T>(
+function addConditionToQueryBuilder<T>(
   sqb: SelectQueryBuilder<T>,
   condition: any,
 ): SelectQueryBuilder<T> {
@@ -62,10 +66,7 @@ export function addConditionToQueryBuilder<T>(
   return sqb;
 }
 
-export function addSortToQueryBuilder<T>(
-  sqb: SelectQueryBuilder<T>,
-  sort: any,
-): SelectQueryBuilder<T> {
+function addSortToQueryBuilder<T>(sqb: SelectQueryBuilder<T>, sort: any): SelectQueryBuilder<T> {
   if (sort) {
     Object.entries(sort).forEach(([key, value]) => {
       sqb.addOrderBy(

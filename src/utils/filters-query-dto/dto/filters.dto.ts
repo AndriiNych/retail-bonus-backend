@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { IsDate, IsISO8601, IsOptional } from 'class-validator';
 
 export class FilterBaseDto {
@@ -8,11 +8,31 @@ export class FilterBaseDto {
 
   @IsISO8601()
   @IsOptional()
+  ne?: string;
+
+  @IsISO8601()
+  @IsOptional()
+  gt?: string;
+
+  @IsISO8601()
+  @IsOptional()
+  lt?: string;
+
+  @IsISO8601()
+  @IsOptional()
   gte?: string;
 
   @IsISO8601()
   @IsOptional()
-  lte?: Date;
+  lte?: string;
+
+  @IsISO8601()
+  @IsOptional()
+  in?: string[];
+
+  @IsISO8601()
+  @IsOptional()
+  like?: string;
 }
 
 export class FilterBaseDateDto {
