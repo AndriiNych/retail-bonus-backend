@@ -17,7 +17,9 @@ import { Customer } from '../customer/customer.entity';
 import { plainToInstance } from 'class-transformer';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { RegisterSavingService } from '../register-saving/register-saving.service';
-import { isBonusEnough } from '@src/utils/check/isBonusEnough';
+import { isBonusEnoughToPay } from '@src/utils/check/isBonusEnough';
+import { DailyTasksService } from '@src/services/daily-tasks/daily-tasks.service';
+import { DATE } from '@src/utils/date';
 
 @Injectable()
 export class ReceiptService {
@@ -26,13 +28,14 @@ export class ReceiptService {
     private readonly customerService: CustomerService,
     private readonly registerBalansService: RegisterBalansService,
     private readonly registerSavingService: RegisterSavingService,
+    private readonly dailyTasksService: DailyTasksService,
     private readonly dataSource: DataSource,
   ) {}
 
   public async createReceipt(receiptDto: ReceiptDto): Promise<Record<string, any[]>> {
     const customer = await this.fetchCustomerByPhone(receiptDto.customerPhone);
 
-    isBonusEnough(customer.amountBonus, receiptDto.spentBonus);
+    isBonusEnoughToPay(customer.amountBonus, receiptDto.spentBonus);
 
     const newReceipt = this.transformToRecipe(receiptDto, customer.id);
 
@@ -50,15 +53,16 @@ export class ReceiptService {
         TABLE_NAMES.receipt,
       );
 
-      let changedCustomer = await this.registerBalansService.saveReceiptToRegisterBalans(
-        savedReceipt,
-        manager,
-      );
+      await this.registerBalansService.saveReceiptToRegisterBalans(savedReceipt, manager);
 
-      changedCustomer = await this.registerSavingService.saveReceiptToRegisterSaving(
-        savedReceipt,
-        manager,
-      );
+      await this.registerSavingService.saveReceiptToRegisterSaving(savedReceipt, manager);
+
+      const changedCustomer =
+        await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
+          manager,
+          { customerId: customer.id },
+          { date: DATE.END_DATE(new Date()) },
+        );
 
       //TODO it may be necessary to change the methods so that they return only the amount of change in balances or savings, and then make a change in customer at a time
       const resultCustomer = wrapperResponseEntity(

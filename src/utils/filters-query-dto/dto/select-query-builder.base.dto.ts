@@ -3,17 +3,17 @@ import { IsObject, IsOptional } from 'class-validator';
 export class SelectQueryBuilderBaseDto {
   @IsOptional()
   @IsObject()
-  conditions: any;
+  conditions?: any;
 
   @IsOptional()
   @IsObject()
-  orderBy: any;
+  orderBy?: any;
 
   @IsOptional()
   @IsObject()
-  addOrderBy: any;
+  addOrderBy?: any;
 
   @IsOptional()
   @IsObject()
-  pagination: any;
+  pagination?: any;
 }

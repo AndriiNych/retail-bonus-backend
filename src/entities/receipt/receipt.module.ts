@@ -7,6 +7,7 @@ import { CustomerModule } from '../customer/customer.module';
 import { RegisterBalansModule } from '../register-balans/register-balans.module';
 import { ReceiptRepository } from './receipt.repository';
 import { RegisterSavingModule } from '../register-saving/register-saving.module';
+import { DailyTasksModule } from '@src/services/daily-tasks/daily-tasks.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RegisterSavingModule } from '../register-saving/register-saving.module'
     CustomerModule,
     RegisterBalansModule,
     RegisterSavingModule,
+    DailyTasksModule,
   ],
   controllers: [ReceiptController],
   providers: [ReceiptService, ReceiptRepository],

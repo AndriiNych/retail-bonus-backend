@@ -14,6 +14,7 @@ import {
 } from 'class-validator';
 
 export class ReceiptDto {
+  // value: 1 - receipt (check), value: 2 - refund receipt(check)
   @IsInt()
   @IsNotEmpty()
   @Min(1)

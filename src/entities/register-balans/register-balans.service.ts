@@ -12,7 +12,7 @@ import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { CustomerService } from '../customer/customer.service';
 import { MATH } from '@src/utils/math.decimal';
-import { isBonusEnough } from '@src/utils/check/isBonusEnough';
+import { isBonusEnoughToPay } from '@src/utils/check/isBonusEnough';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
 import { configureSelectQueryBuilder } from '@src/utils/filters-query-dto/add-select-query_builder';
 
@@ -22,7 +22,7 @@ export class RegisterBalansService {
   constructor(
     @InjectRepository(RegisterBalans)
     private readonly registerBalansRepository: Repository<RegisterBalans>,
-    private readonly customerService: CustomerService,
+    // private readonly customerService: CustomerService,
   ) {}
 
   public async getAllRecords(
@@ -50,26 +50,23 @@ export class RegisterBalansService {
     return listCustomerId.map(e => e.customerId);
   }
 
-  public async createRecord(
-    registerBalansDto: RegisterBalansDto,
-  ): Promise<RegisterBalansResponseDto> {
-    const newRegisterBalans = this.registerBalansRepository.create(registerBalansDto);
+  // public async createRecord(
+  //   registerBalansDto: RegisterBalansDto,
+  // ): Promise<RegisterBalansResponseDto> {
+  //   const newRegisterBalans = this.registerBalansRepository.create(registerBalansDto);
 
-    const registerBalans = await this.registerBalansRepository.save(newRegisterBalans);
+  //   const registerBalans = await this.registerBalansRepository.save(newRegisterBalans);
 
-    return registerBalans;
-  }
+  //   return registerBalans;
+  // }
 
   public async saveReceiptToRegisterBalans(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
-  ): Promise<CustomerResponseDto> {
-    await this.saveAcuredBonus(receiptResponseBaseDto, manager);
+  ): Promise<void> {
+    await this.saveAccuredBonus(receiptResponseBaseDto, manager);
 
-    //[x]  perhaps you need to decompose saveSpentBonus into pure saceSpentBonus and saveChangeCustomer
-    const updatedCustomer = await this.saveSpentBonus(receiptResponseBaseDto, manager);
-
-    return updatedCustomer;
+    await this.saveSpentBonus(receiptResponseBaseDto, manager);
   }
 
   public async updateRegisterBalansById(
@@ -84,7 +81,7 @@ export class RegisterBalansService {
     return await manager.save(RegisterBalans, newRecord);
   }
 
-  private async saveAcuredBonus(
+  private async saveAccuredBonus(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
   ): Promise<void> {
@@ -96,59 +93,11 @@ export class RegisterBalansService {
   private async saveSpentBonus(
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
-  ): Promise<CustomerResponseDto> {
-    const { customerId, spentBonus } = receiptResponseBaseDto;
-
-    let updatedCustomer: CustomerResponseDto;
+  ): Promise<void> {
+    const { spentBonus } = receiptResponseBaseDto;
 
     if (spentBonus) {
       await this.saveReisterBalansAsSpentBonus(receiptResponseBaseDto, manager);
-
-      await this.allocateSpentBonus(receiptResponseBaseDto, manager);
-
-      updatedCustomer = await this.updateBonusByCustomerId(
-        customerId,
-        spentBonus,
-        DocumentType.SpentBonus,
-        manager,
-      );
-    }
-
-    return updatedCustomer;
-  }
-
-  private async allocateSpentBonus(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
-    manager: EntityManager,
-  ): Promise<void> {
-    const { customerId } = receiptResponseBaseDto;
-
-    const listRegisterBalans = await manager.find(RegisterBalans, {
-      where: { customerId: customerId, activeType: ActiveType.Active },
-      order: { startDate: 'ASC' },
-    });
-
-    let spentBonus = parseFloat(receiptResponseBaseDto.spentBonus);
-    for (const e of listRegisterBalans) {
-      const sub = parseFloat(MATH.DECIMAL.subtract(e.bonus, e.usedBonus));
-      const newRegisterBalans = { ...e };
-      if (sub !== 0 && spentBonus !== 0) {
-        const delta = spentBonus - sub;
-        if (delta > 0) {
-          newRegisterBalans.usedBonus = newRegisterBalans.bonus;
-          spentBonus = delta;
-        } else if (delta === 0) {
-          newRegisterBalans.usedBonus = newRegisterBalans.bonus;
-          spentBonus = 0;
-        } else {
-          newRegisterBalans.usedBonus = MATH.DECIMAL.add(
-            newRegisterBalans.usedBonus,
-            spentBonus.toString(),
-          );
-          spentBonus = 0;
-        }
-        await manager.save(TABLE_NAME, newRegisterBalans);
-      }
     }
   }
 
@@ -156,33 +105,16 @@ export class RegisterBalansService {
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
   ): Promise<RegisterBalansResponseDto> {
-    return await this.saveRegisterBalans(receiptResponseBaseDto, DocumentType.SpentBonus, manager);
-  }
-
-  private async updateBonusByCustomerId(
-    customerId: number,
-    spentBonus: string,
-    documentType: DocumentType,
-    manager: EntityManager,
-  ): Promise<CustomerResponseDto> {
-    let currentCustomer = await this.fetchCustomerById(customerId, manager);
-
-    isBonusEnough(currentCustomer.amountBonus, spentBonus);
-
-    if (parseFloat(spentBonus) !== 0) {
-      currentCustomer.amountBonus = RegisterBalansTypeMap[documentType].operation(
-        currentCustomer.amountBonus,
-        spentBonus,
-      );
-
-      currentCustomer = await this.customerService.updateCustomerByPhoneWithTransaction(
-        currentCustomer,
-        currentCustomer,
-        manager,
-      );
-    }
-
-    return currentCustomer;
+    const currentReceiptResponseBaseDTO = {
+      ...receiptResponseBaseDto,
+      startDate: new Date(),
+      endDate: new Date(),
+    };
+    return await this.saveRegisterBalans(
+      currentReceiptResponseBaseDTO,
+      DocumentType.SpentBonus,
+      manager,
+    );
   }
 
   private async saveRegisterBalans(
@@ -213,27 +145,5 @@ export class RegisterBalansService {
     );
 
     return { ...registerBalansTransformDto, activeType, documentType };
-  }
-
-  //[x] commented method
-  /* this method is disabled because checking records for existence is performed when writing a receipt
-  private async checkBeforeCommit(documentUuid: string): Promise<void> {
-    const registerBalans = await this.registerBalansRepository.findOneBy({
-      documentUuid,
-    });
-
-    if (registerBalans) {
-      throw new ConflictException(
-        `Record with documentUuid: ${documentUuid} already exists. You must first perform Rollback. `,
-      );
-    }
-  }
-*/
-
-  private async fetchCustomerById(
-    customerId: number,
-    manager: EntityManager,
-  ): Promise<CustomerResponseDto> {
-    return await this.customerService.getCustomerByIdWithTransaction(customerId, manager);
   }
 }
