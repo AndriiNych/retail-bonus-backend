@@ -1,29 +1,20 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 
 import { TABLE_NAMES } from '@src/db/const-tables';
-import { ActiveType, DocumentType, RegisterBalansTypeMap } from './utils/types';
+import { DocumentType, RegisterBalansTypeMap } from './utils/types';
 import { RegisterBalansDto } from './dto/register-balans.dto';
 import { RegisterBalansResponseDto } from './dto/register-balans-response.dto';
 import { RegisterBalans } from './register-balans.entity';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
-import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
-import { CustomerService } from '../customer/customer.service';
-import { MATH } from '@src/utils/math.decimal';
-import { isBonusEnoughToPay } from '@src/utils/check/isBonusEnough';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
 import { configureSelectQueryBuilder } from '@src/utils/filters-query-dto/add-select-query_builder';
 
 const TABLE_NAME = TABLE_NAMES.register_balans;
 @Injectable()
 export class RegisterBalansService {
-  constructor(
-    @InjectRepository(RegisterBalans)
-    private readonly registerBalansRepository: Repository<RegisterBalans>,
-    // private readonly customerService: CustomerService,
-  ) {}
+  constructor() {}
 
   public async getAllRecords(
     manager: EntityManager,
@@ -50,23 +41,13 @@ export class RegisterBalansService {
     return listCustomerId.map(e => e.customerId);
   }
 
-  // public async createRecord(
-  //   registerBalansDto: RegisterBalansDto,
-  // ): Promise<RegisterBalansResponseDto> {
-  //   const newRegisterBalans = this.registerBalansRepository.create(registerBalansDto);
-
-  //   const registerBalans = await this.registerBalansRepository.save(newRegisterBalans);
-
-  //   return registerBalans;
-  // }
-
   public async saveReceiptToRegisterBalans(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<void> {
-    await this.saveAccuredBonus(receiptResponseBaseDto, manager);
+    await this.saveAccuredBonus(manager, receiptResponseBaseDto);
 
-    await this.saveSpentBonus(receiptResponseBaseDto, manager);
+    await this.saveSpentBonus(manager, receiptResponseBaseDto);
   }
 
   public async updateRegisterBalansById(
@@ -82,28 +63,28 @@ export class RegisterBalansService {
   }
 
   private async saveAccuredBonus(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<void> {
     if (receiptResponseBaseDto.accuredBonus) {
-      await this.saveRegisterBalans(receiptResponseBaseDto, DocumentType.Receipt, manager);
+      await this.saveRegisterBalans(manager, receiptResponseBaseDto, DocumentType.Receipt);
     }
   }
 
   private async saveSpentBonus(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<void> {
     const { spentBonus } = receiptResponseBaseDto;
 
-    if (spentBonus) {
-      await this.saveReisterBalansAsSpentBonus(receiptResponseBaseDto, manager);
+    if (spentBonus && parseFloat(spentBonus) > 0) {
+      await this.saveReisterBalansAsSpentBonus(manager, receiptResponseBaseDto);
     }
   }
 
   private async saveReisterBalansAsSpentBonus(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<RegisterBalansResponseDto> {
     const currentReceiptResponseBaseDTO = {
       ...receiptResponseBaseDto,
@@ -111,16 +92,16 @@ export class RegisterBalansService {
       endDate: new Date(),
     };
     return await this.saveRegisterBalans(
+      manager,
       currentReceiptResponseBaseDTO,
       DocumentType.SpentBonus,
-      manager,
     );
   }
 
   private async saveRegisterBalans(
+    manager: EntityManager,
     receiptResponseBaseDto: ReceiptResponseBaseDto,
     documentType: DocumentType,
-    manager: EntityManager,
   ): Promise<RegisterBalansResponseDto> {
     const newRegisterBalans = this.transformReceiptToRegisterBalans(
       receiptResponseBaseDto,

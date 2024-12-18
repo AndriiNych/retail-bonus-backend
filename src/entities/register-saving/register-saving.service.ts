@@ -39,8 +39,8 @@ export class RegisterSavingService {
   }
 
   public async saveReceiptToRegisterSaving(
-    receiptResponseBaseDto: ReceiptResponseBaseDto,
     manager: EntityManager,
+    receiptResponseBaseDto: ReceiptResponseBaseDto,
   ): Promise<void> {
     const { saving } = receiptResponseBaseDto;
 
@@ -55,12 +55,12 @@ export class RegisterSavingService {
     );
     const newRegisterSavingDto = { ...registerSavingDto, startDate: new Date() };
 
-    await this.saveRegisterSaving(newRegisterSavingDto, manager);
+    await this.saveRegisterSaving(manager, newRegisterSavingDto);
   }
 
   public async saveRegisterSaving(
-    registerSavingDto: RegisterSavingDto,
     manager: EntityManager,
+    registerSavingDto: RegisterSavingDto,
   ): Promise<RegisterSavingResponseDto> {
     return await manager.save(RegisterSaving, registerSavingDto);
   }

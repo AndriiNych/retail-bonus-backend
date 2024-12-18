@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { Receipt } from './receipt.entity';
 import { ReceiptDto } from './dto/receipt.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
@@ -32,50 +32,92 @@ export class ReceiptService {
     private readonly dataSource: DataSource,
   ) {}
 
+  public async getReceiptByUuid(
+    receiptParamsDto: ReceiptParamsDto,
+  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
+    const { uuid } = receiptParamsDto;
+
+    const receipt = await this.receiptRepository.fetchReceiptByUuidWithValidation(uuid);
+
+    const resultTransform = await this.transformCustomerIdToPhoneNumber(receipt);
+
+    const result = resultTransform ? [resultTransform] : [];
+
+    return responseWrapper(result, ReceiptResponseDto);
+  }
+
   public async createReceipt(receiptDto: ReceiptDto): Promise<Record<string, any[]>> {
+    const newReceipt = await this.prepareReceiptForSave(receiptDto);
+
+    const resultTest = await this.dataSource.transaction(async manager => {
+      return await this.processSavingReceiptIntoTransaction(
+        manager,
+        newReceipt,
+        receiptDto.customerPhone,
+      );
+    });
+
+    return resultTest;
+  }
+
+  private async processSavingReceiptIntoTransaction(
+    manager: EntityManager,
+    newReceipt: Receipt,
+    customerPhone: string,
+  ): Promise<Record<string, any[]>> {
+    const savedReceipt = await this.receiptRepository.saveWithValidationAndTransaction(
+      newReceipt,
+      manager,
+    );
+    const receiptResponseDto = this.transformToReceiptResponse(savedReceipt, customerPhone);
+
+    const updatedCustomer = await this.processSavingDataFromReceiptToRegistryAndCustomer(
+      manager,
+      savedReceipt,
+    );
+
+    return this.getResultDataAfterSaveReceipt(receiptResponseDto, updatedCustomer);
+  }
+
+  private async processSavingDataFromReceiptToRegistryAndCustomer(
+    manager: EntityManager,
+    savedReceipt: Receipt,
+  ): Promise<CustomerResponseDto> {
+    await this.registerBalansService.saveReceiptToRegisterBalans(manager, savedReceipt);
+
+    await this.registerSavingService.saveReceiptToRegisterSaving(manager, savedReceipt);
+
+    const updatedCustomer =
+      await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
+        manager,
+        { customerId: savedReceipt.customerId },
+        { date: DATE.END_DATE(new Date()) },
+      );
+
+    return updatedCustomer;
+  }
+
+  private getResultDataAfterSaveReceipt(
+    receipt: ReceiptResponseDto,
+    customer: CustomerResponseDto,
+  ): Record<string, any[]> {
+    const resultReceipt = wrapperResponseEntity(receipt, ReceiptResponseDto, TABLE_NAMES.receipt);
+
+    const resultCustomer = wrapperResponseEntity(
+      customer,
+      CustomerResponseDto,
+      TABLE_NAMES.customer,
+    );
+
+    return { ...resultReceipt, ...resultCustomer };
+  }
+
+  private async prepareReceiptForSave(receiptDto: ReceiptDto): Promise<Receipt> {
     const customer = await this.fetchCustomerByPhone(receiptDto.customerPhone);
 
     isBonusEnoughToPay(customer.amountBonus, receiptDto.spentBonus);
 
-    const newReceipt = this.transformToRecipe(receiptDto, customer.id);
-
-    const resultTest = await this.dataSource.transaction(async manager => {
-      const savedReceipt = await this.receiptRepository.saveWithValidationAndTransaction(
-        newReceipt,
-        manager,
-      );
-
-      const receiptResponseDto = this.transformToReceiptResponse(savedReceipt, customer.phone);
-
-      const resultReceipt = wrapperResponseEntity(
-        receiptResponseDto,
-        ReceiptResponseDto,
-        TABLE_NAMES.receipt,
-      );
-
-      await this.registerBalansService.saveReceiptToRegisterBalans(savedReceipt, manager);
-
-      await this.registerSavingService.saveReceiptToRegisterSaving(savedReceipt, manager);
-
-      const changedCustomer =
-        await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
-          manager,
-          { customerId: customer.id },
-          { date: DATE.END_DATE(new Date()) },
-        );
-
-      //TODO it may be necessary to change the methods so that they return only the amount of change in balances or savings, and then make a change in customer at a time
-      const resultCustomer = wrapperResponseEntity(
-        changedCustomer,
-        CustomerResponseDto,
-        TABLE_NAMES.customer,
-      );
-
-      //[x] throw new NotFoundException('sdfsdfsd');
-      return { ...resultReceipt, ...resultCustomer };
-    });
-
-    return resultTest;
+    return this.transformToRecipe(receiptDto, customer.id);
   }
 
   //[x] commented method
@@ -95,20 +137,6 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 */
-
-  public async getReceiptByUuid(
-    receiptParamsDto: ReceiptParamsDto,
-  ): Promise<ResponseWrapperDto<ReceiptResponseDto>> {
-    const { uuid } = receiptParamsDto;
-
-    const receipt = await this.receiptRepository.fetchReceiptByUuidWithValidation(uuid);
-
-    const resultTransform = await this.transformCustomerIdToPhoneNumber(receipt);
-
-    const result = resultTransform ? [resultTransform] : [];
-
-    return responseWrapper(result, ReceiptResponseDto);
-  }
 
   //[x] commented method
   /* updateReceiptByUuid: this method is disabled because the check should not change
@@ -181,14 +209,10 @@ export class ReceiptService {
     return data[0];
   }
 
-  //TODO delete this method
   private async fetchCustomerIdByPhone(phone: string): Promise<number> {
-    const customerParamsDto = new CustomerParamsDto();
-    customerParamsDto.phone = phone;
+    const { id: customerId } = await this.fetchCustomerByPhone(phone);
 
-    const { data } = await this.customerService.getCustomerByPhoneBase(customerParamsDto);
-
-    return data[0].id;
+    return customerId;
   }
 
   private transformToRecipe(receiptDto: ReceiptDto, customerId: number): Receipt {
