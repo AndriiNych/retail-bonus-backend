@@ -59,7 +59,7 @@ export class FilterBaseDateDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  gte?: string;
+  gte?: Date;
 
   @IsOptional()
   @Type(() => Date)

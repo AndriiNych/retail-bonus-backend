@@ -17,6 +17,9 @@ import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/
 import { SelectQueryBuilderBaseDto } from '@src/utils/filters-query-dto/dto/select-query-builder.base.dto';
 import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans-response.dto';
 import { RegisterSavingService } from '@src/entities/register-saving/register-saving.service';
+import { DailyTasksPeriodQueryDto } from './dto/daiy-tasks-period.query.dtp';
+import { EntryType } from 'perf_hooks';
+import { PeriodDto } from '@src/utils/dto/period.dto';
 
 @Injectable()
 export class DailyTasksService {
@@ -59,7 +62,6 @@ export class DailyTasksService {
       dailyTasksParamsDto,
       dailyTasksQueryBaseDto,
     );
-
     let changedCustomer = await this.recalculateCustomerBonusHistory(
       manager,
       queryOnActivatedForBalans,
@@ -342,6 +344,36 @@ export class DailyTasksService {
       startDate: DATE.ONLY_DATE(item.startDate),
       endDate: DATE.ONLY_DATE(item.endDate),
     }));
+  }
+
+  public async processDailyReculculateBonusByPeriod(
+    dailyTasksPeriodQueryDto: DailyTasksPeriodQueryDto,
+  ): Promise<Record<string, CustomerResponseDto[]>> {
+    const updatedCustomerList = await this.dataSource.transaction(async manager => {
+      return await this.processDailyReculculateBonusByPeriodIntoTransaction(
+        manager,
+        dailyTasksPeriodQueryDto,
+      );
+    });
+
+    return wrapperResponseEntity(updatedCustomerList, CustomerResponseDto, TABLE_NAMES.customer);
+  }
+
+  private async processDailyReculculateBonusByPeriodIntoTransaction(
+    manager: EntityManager,
+    dailyTasksPeriodQueryDto: DailyTasksPeriodQueryDto,
+  ): Promise<CustomerResponseDto[]> {
+    console.log(dailyTasksPeriodQueryDto);
+    const {
+      date: { gte, lte },
+    } = dailyTasksPeriodQueryDto;
+    const period: PeriodDto = { startDate: gte, endDate: lte };
+    const customerList = await this.registerBalansService.getListCustomerIdByPeriod(
+      manager,
+      period,
+    );
+    console.log(customerList);
+    return;
   }
 
   public async processDailyReculculateBonusByDate(

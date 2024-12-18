@@ -10,6 +10,8 @@ import { RegisterBalans } from './register-balans.entity';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
 import { configureSelectQueryBuilder } from '@src/utils/filters-query-dto/add-select-query_builder';
+import { PeriodDto } from '@src/utils/dto/period.dto';
+import { get } from 'http';
 
 const TABLE_NAME = TABLE_NAMES.register_balans;
 @Injectable()
@@ -29,6 +31,31 @@ export class RegisterBalansService {
     } catch (err) {
       throw new UnprocessableEntityException(err);
     }
+  }
+
+  public async getListCustomerIdByPeriod(
+    manager: EntityManager,
+    period: PeriodDto,
+  ): Promise<number[]> {
+    const { startDate, endDate } = period;
+
+    const listCustomerId = await manager
+      .createQueryBuilder(RegisterBalans, TABLE_NAME)
+
+      .select(`${TABLE_NAME}.customerId`)
+      .where(
+        'start_date Between :startDateStart AND :startDateEnd or end_date BETWEEN :endDateStart AND :endDateEnd',
+        {
+          startDateStart: startDate,
+          startDateEnd: endDate,
+          endDateStart: startDate,
+          endDateEnd: endDate,
+        },
+      )
+      .groupBy(`${TABLE_NAME}.customerId`)
+      .getMany();
+
+    return listCustomerId.map(e => e.customerId);
   }
 
   public async getListCustomerId(manager: EntityManager): Promise<number[]> {
