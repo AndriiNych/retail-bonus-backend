@@ -20,6 +20,7 @@ import { RegisterSavingService } from '../register-saving/register-saving.servic
 import { isBonusEnoughToPay } from '@src/utils/check/isBonusEnough';
 import { DailyTasksService } from '@src/services/daily-tasks/daily-tasks.service';
 import { DATE } from '@src/utils/date';
+import { RecalculateCustomer } from '@src/services/daily-tasks/service/recalculate.customer';
 
 @Injectable()
 export class ReceiptService {
@@ -30,6 +31,7 @@ export class ReceiptService {
     private readonly registerSavingService: RegisterSavingService,
     private readonly dailyTasksService: DailyTasksService,
     private readonly dataSource: DataSource,
+    private readonly recalculateCustomer: RecalculateCustomer,
   ) {}
 
   public async getReceiptByUuid(
@@ -87,12 +89,15 @@ export class ReceiptService {
 
     await this.registerSavingService.saveReceiptToRegisterSaving(manager, savedReceipt);
 
+    this.recalculateCustomer.setParams(manager, savedReceipt.customerId, DATE.END_DATE(new Date()));
     const updatedCustomer =
-      await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
-        manager,
-        { customerId: savedReceipt.customerId },
-        { date: DATE.END_DATE(new Date()) },
-      );
+      await this.recalculateCustomer.processDailyRecalculateCustomerByDateIntoTransaction();
+
+    // await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
+    //   manager,
+    //   { customerId: savedReceipt.customerId },
+    //   { date: DATE.END_DATE(new Date()) },
+    // );
 
     return updatedCustomer;
   }

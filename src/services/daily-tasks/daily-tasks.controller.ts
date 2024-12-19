@@ -12,7 +12,7 @@ export class DailyTasksController {
   async processDailyReculculateBonusByPeriod(
     @Query() dailyTasksPeriodQueryDto: DailyTasksPeriodQueryDto,
   ) {
-    return await this.dailyTasksService.processDailyReculculateBonusByPeriod(
+    return await this.dailyTasksService.processDailyRecalculateBonusByPeriod(
       dailyTasksPeriodQueryDto,
     );
   }

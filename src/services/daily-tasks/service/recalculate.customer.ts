@@ -3,8 +3,6 @@ import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/reg
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { RegisterSavingService } from '@src/entities/register-saving/register-saving.service';
 import { EntityManager } from 'typeorm';
-import { DailyTasksParamsDto } from '../dto/dayly-tasks.params.dto';
-import { DailyTasksQueryBaseDto } from '../dto/daily-tasks.query.base.dto';
 import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
 import { SelectQueryBuilderBaseDto } from '@src/utils/filters-query-dto/dto/select-query-builder.base.dto';
 import { plainToInstance } from 'class-transformer';
@@ -13,7 +11,9 @@ import { ActiveType, DocumentType } from '@src/entities/register-balans/utils/ty
 import { FIELDS_LENGTH } from '@src/db/const-fields';
 import { MATH } from '@src/utils/math.decimal';
 import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/register-balans.update.short.dto';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class RecalculateCustomer {
   private fetchRegisterBalansList: RegisterBalansResponseDto[];
   private rbList: any[];
@@ -24,9 +24,6 @@ export class RecalculateCustomer {
   private recalcDate: Date;
 
   constructor(
-    manager: EntityManager,
-    customerId: number,
-    recalcDate: Date,
     private readonly registerBalansService: RegisterBalansService,
     private readonly registerSavingService: RegisterSavingService,
     private readonly customerService: CustomerService,
@@ -34,50 +31,33 @@ export class RecalculateCustomer {
     this.fetchRegisterBalansList = [];
     this.rbList = [];
     this.fetchRegisterSavingList = [];
+  }
+
+  public setParams(manager: EntityManager, customerId: number, recalcDate: Date) {
     this.manager = manager;
     this.customerId = customerId;
     this.recalcDate = recalcDate;
   }
 
-  public async processDailyRecalculateCustomerByDateIntoTransaction(
-    manager: EntityManager,
-    dailyTasksParamsDto: DailyTasksParamsDto,
-    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): Promise<CustomerResponseDto> {
-    const queryOnActivatedForBalans = this.createSelectQueryBuilderObjForRegisterBalans(
-      dailyTasksParamsDto,
-      dailyTasksQueryBaseDto,
-    );
-    let changedCustomer = await this.recalculateCustomerBonusHistory(
-      manager,
-      queryOnActivatedForBalans,
-    );
+  public async processDailyRecalculateCustomerByDateIntoTransaction(): Promise<CustomerResponseDto> {
+    const queryOnActivatedForBalans = this.createSelectQueryBuilderObjForRegisterBalans();
+    let changedCustomer = await this.recalculateCustomerBonusHistory(queryOnActivatedForBalans);
 
-    const queryOnActivatedForSaving = this.createSelectQueryBuilderObjForRegisterSaving(
-      dailyTasksParamsDto,
-      dailyTasksQueryBaseDto,
-    );
-    changedCustomer = await this.recalculateCustomerSavingHistory(
-      manager,
-      queryOnActivatedForSaving,
-    );
+    const queryOnActivatedForSaving = this.createSelectQueryBuilderObjForRegisterSaving();
+    changedCustomer = await this.recalculateCustomerSavingHistory(queryOnActivatedForSaving);
 
     return changedCustomer;
   }
 
   private async recalculateCustomerSavingHistory(
-    manager: EntityManager,
     queryObj: SelectQueryBuilderBaseDto,
   ): Promise<CustomerResponseDto> {
-    const {
-      conditions: { customerId },
-    } = queryObj;
-    await this.prepareListRegisterSavingForCalculate(manager, queryObj);
+    await this.prepareListRegisterSavingForCalculate(queryObj);
 
     const newSaving = this.getRecalculationRegisterSavingForCustomer();
 
-    const changedCustomer = await this.customerService.updateCustomerById(manager, {
-      id: customerId,
+    const changedCustomer = await this.customerService.updateCustomerById(this.manager, {
+      id: this.customerId,
       amountBox: newSaving.toFixed(FIELDS_LENGTH.DECIMAL.SCALE),
     });
 
@@ -92,25 +72,24 @@ export class RecalculateCustomer {
   }
 
   private async prepareListRegisterSavingForCalculate(
-    manager: EntityManager,
     queryObj: SelectQueryBuilderBaseDto,
   ): Promise<void> {
-    const registerSavingList = await this.registerSavingService.getAllRecords(manager, queryObj);
+    const registerSavingList = await this.registerSavingService.getAllRecords(
+      this.manager,
+      queryObj,
+    );
     this.fetchRegisterSavingList = registerSavingList.map(item => ({
       ...item,
       amount: parseFloat(item.amount),
     }));
   }
 
-  private createSelectQueryBuilderObjForRegisterBalans(
-    dailyTasksParamsDto: DailyTasksParamsDto,
-    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): SelectQueryBuilderBaseDto {
-    const { customerId } = dailyTasksParamsDto;
-    const { date } = dailyTasksQueryBaseDto;
-
+  private createSelectQueryBuilderObjForRegisterBalans(): SelectQueryBuilderBaseDto {
     return plainToInstance(SelectQueryBuilderBaseDto, {
-      conditions: { startDate: { lte: DATE.END_DATE(date) }, customerId },
+      conditions: {
+        startDate: { lte: DATE.END_DATE(this.recalcDate) },
+        customerId: this.customerId,
+      },
       orderBy: { startDate: 'ASC', endDate: 'ASC' },
       addOrderBy: `CASE 
               WHEN register_balans.document_type = ${DocumentType.Receipt} THEN 1 
@@ -124,29 +103,22 @@ export class RecalculateCustomer {
   }
 
   private async recalculateCustomerBonusHistory(
-    manager: EntityManager,
     queryObj: SelectQueryBuilderBaseDto,
   ): Promise<CustomerResponseDto> {
-    await this.prepareListsRegisterBalansForCalculate(manager, queryObj);
+    await this.prepareListsRegisterBalansForCalculate(queryObj);
 
     this.makeToRecalculateRegisterBalans();
 
     const listForUpdate = this.createListRecordsForUpdateToregisterBalans();
 
-    await this.updateAllChangesInRegisterBalans(manager, listForUpdate);
+    await this.updateAllChangesInRegisterBalans(listForUpdate);
 
-    const updatedCustomer = await this.saveNewBalansToCustomer(manager, queryObj);
+    const updatedCustomer = await this.saveNewBalansToCustomer();
 
     return updatedCustomer;
   }
 
-  private async saveNewBalansToCustomer(
-    manager: EntityManager,
-    queryObj: SelectQueryBuilderBaseDto,
-  ): Promise<CustomerResponseDto> {
-    const {
-      conditions: { customerId },
-    } = queryObj;
+  private async saveNewBalansToCustomer(): Promise<CustomerResponseDto> {
     const newAmountBonus = this.rbList
       .reduce((acc, { activeType, documentType, bonus, usedBonus }) => {
         let result: number = 0;
@@ -160,14 +132,13 @@ export class RecalculateCustomer {
       }, 0)
       .toFixed(FIELDS_LENGTH.DECIMAL.SCALE);
 
-    return await this.customerService.updateCustomerById(manager, {
-      id: customerId,
+    return await this.customerService.updateCustomerById(this.manager, {
+      id: this.customerId,
       amountBonus: newAmountBonus,
     });
   }
 
   private async updateAllChangesInRegisterBalans(
-    manager: EntityManager,
     listForUpdate: RegisterBalansUpdateShortDto[],
   ): Promise<void> {
     if (listForUpdate.length > 0) {
@@ -176,7 +147,7 @@ export class RecalculateCustomer {
       ): Promise<void> => {
         const { id, ...registryBalansUpdateDto } = registerBalansUpdateShortDto;
         await this.registerBalansService.updateRegisterBalansById(
-          manager,
+          this.manager,
           id,
           registryBalansUpdateDto,
         );
@@ -303,10 +274,12 @@ export class RecalculateCustomer {
   }
 
   private async prepareListsRegisterBalansForCalculate(
-    manager: EntityManager,
     queryObj: SelectQueryBuilderBaseDto,
   ): Promise<void> {
-    const registerBalansList = await this.registerBalansService.getAllRecords(manager, queryObj);
+    const registerBalansList = await this.registerBalansService.getAllRecords(
+      this.manager,
+      queryObj,
+    );
     this.fetchRegisterBalansList = [...registerBalansList];
 
     this.rbList = registerBalansList.map(item => ({
@@ -319,15 +292,12 @@ export class RecalculateCustomer {
     }));
   }
 
-  private createSelectQueryBuilderObjForRegisterSaving(
-    dailyTasksParamsDto: DailyTasksParamsDto,
-    dailyTasksQueryBaseDto: DailyTasksQueryBaseDto,
-  ): SelectQueryBuilderBaseDto {
-    const { customerId } = dailyTasksParamsDto;
-    const { date } = dailyTasksQueryBaseDto;
-
+  private createSelectQueryBuilderObjForRegisterSaving(): SelectQueryBuilderBaseDto {
     return plainToInstance(SelectQueryBuilderBaseDto, {
-      conditions: { startDate: { lte: DATE.END_DATE(date) }, customerId },
+      conditions: {
+        startDate: { lte: DATE.END_DATE(this.recalcDate) },
+        customerId: this.customerId,
+      },
       orderBy: { startDate: 'ASC' },
     });
   }
