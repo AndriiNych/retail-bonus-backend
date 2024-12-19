@@ -23,7 +23,7 @@ export class RegisterBalansResponseDto {
   bonus: string;
 
   @Expose()
-  usedBonus!: string;
+  usedBonus: string;
 
   @Expose()
   startDate: Date;

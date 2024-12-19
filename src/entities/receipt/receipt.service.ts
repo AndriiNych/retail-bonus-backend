@@ -18,9 +18,9 @@ import { plainToInstance } from 'class-transformer';
 import { CustomerResponseDto } from '../customer/dto/customer-response.dto';
 import { RegisterSavingService } from '../register-saving/register-saving.service';
 import { isBonusEnoughToPay } from '@src/utils/check/isBonusEnough';
-import { DailyTasksService } from '@src/services/daily-tasks/daily-tasks.service';
 import { DATE } from '@src/utils/date';
 import { RecalculateCustomer } from '@src/services/daily-tasks/service/recalculate.customer';
+import { GeneralResponseDto } from '@src/types/general.response.dto';
 
 @Injectable()
 export class ReceiptService {
@@ -29,7 +29,6 @@ export class ReceiptService {
     private readonly customerService: CustomerService,
     private readonly registerBalansService: RegisterBalansService,
     private readonly registerSavingService: RegisterSavingService,
-    private readonly dailyTasksService: DailyTasksService,
     private readonly dataSource: DataSource,
     private readonly recalculateCustomer: RecalculateCustomer,
   ) {}
@@ -48,25 +47,25 @@ export class ReceiptService {
     return responseWrapper(result, ReceiptResponseDto);
   }
 
-  public async createReceipt(receiptDto: ReceiptDto): Promise<Record<string, any[]>> {
+  public async createReceipt(
+    receiptDto: ReceiptDto,
+  ): Promise<Record<string, GeneralResponseDto[]>> {
     const newReceipt = await this.prepareReceiptForSave(receiptDto);
 
-    const resultTest = await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async manager => {
       return await this.processSavingReceiptIntoTransaction(
         manager,
         newReceipt,
         receiptDto.customerPhone,
       );
     });
-
-    return resultTest;
   }
 
   private async processSavingReceiptIntoTransaction(
     manager: EntityManager,
     newReceipt: Receipt,
     customerPhone: string,
-  ): Promise<Record<string, any[]>> {
+  ): Promise<Record<string, GeneralResponseDto[]>> {
     const savedReceipt = await this.receiptRepository.saveWithValidationAndTransaction(
       newReceipt,
       manager,
@@ -90,22 +89,14 @@ export class ReceiptService {
     await this.registerSavingService.saveReceiptToRegisterSaving(manager, savedReceipt);
 
     this.recalculateCustomer.setParams(manager, savedReceipt.customerId, DATE.END_DATE(new Date()));
-    const updatedCustomer =
-      await this.recalculateCustomer.processDailyRecalculateCustomerByDateIntoTransaction();
 
-    // await this.dailyTasksService.processDailyRecalculateCustomerByDateIntoTransaction(
-    //   manager,
-    //   { customerId: savedReceipt.customerId },
-    //   { date: DATE.END_DATE(new Date()) },
-    // );
-
-    return updatedCustomer;
+    return await this.recalculateCustomer.processDailyRecalculateCustomerByDateIntoTransaction();
   }
 
   private getResultDataAfterSaveReceipt(
     receipt: ReceiptResponseDto,
     customer: CustomerResponseDto,
-  ): Record<string, any[]> {
+  ): Record<string, GeneralResponseDto[]> {
     const resultReceipt = wrapperResponseEntity(receipt, ReceiptResponseDto, TABLE_NAMES.receipt);
 
     const resultCustomer = wrapperResponseEntity(
@@ -214,12 +205,13 @@ export class ReceiptService {
     return data[0];
   }
 
+  /*
   private async fetchCustomerIdByPhone(phone: string): Promise<number> {
     const { id: customerId } = await this.fetchCustomerByPhone(phone);
 
     return customerId;
   }
-
+*/
   private transformToRecipe(receiptDto: ReceiptDto, customerId: number): Receipt {
     const receipt = this.receiptRepository.create(receiptDto);
 
@@ -245,7 +237,8 @@ export class ReceiptService {
   }
 
   //[x] method not used
-  //TODO Rename method and type in/out params
+  /*
+  TODO Rename method and type in/out params
   private async transtormCustomerPhoneToCustomerId(
     receipt: ReceiptDto | ReceiptUpdateDto,
   ): Promise<Receipt> {
@@ -265,4 +258,5 @@ export class ReceiptService {
 
     return resultReceipt;
   }
+*/
 }

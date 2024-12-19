@@ -10,6 +10,7 @@ import { DailyTasksParamsDto } from './dto/dayly-tasks.params.dto';
 import { RegisterSavingService } from '@src/entities/register-saving/register-saving.service';
 import { DailyTasksPeriodQueryDto } from './dto/daiy-tasks-period.query.dtp';
 import { RecalculateCustomer } from './service/recalculate.customer';
+import { CustomerAndDate } from '@src/types/customer-date.dto';
 
 @Injectable()
 export class DailyTasksService {
@@ -57,7 +58,7 @@ export class DailyTasksService {
 
   private async prepareCustomerListForDailyRecalculateBonusByPeriodAndCustomer(
     dailyTasksPeriodQueryDto: DailyTasksPeriodQueryDto,
-  ): Promise<{ customerId: number; date: Date }[]> {
+  ): Promise<CustomerAndDate[]> {
     const {
       date: { gte: startDate, lte: endDate },
     } = dailyTasksPeriodQueryDto;
@@ -76,10 +77,7 @@ export class DailyTasksService {
   private async processDailyRecalculateBonusByPeriodAndCustomer({
     customerId,
     date,
-  }: {
-    customerId: number;
-    date: Date;
-  }): Promise<CustomerResponseDto> {
+  }: CustomerAndDate): Promise<CustomerResponseDto> {
     return await this.dataSource.transaction(async manager => {
       const instanse = new RecalculateCustomer(
         this.registerBalansService,

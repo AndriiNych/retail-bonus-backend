@@ -1,12 +1,13 @@
 import { OmitType } from '@nestjs/mapped-types';
-import { RegisterBalansResponseDto } from './register-balans-response.dto';
+import { RegisterBalansResponseDto } from './register-balans.response.dto';
 import { Expose } from 'class-transformer';
 
 //TODO maybe need used ReceiptDto as based class
-export class RegisterBalansTransformBaseDto extends OmitType(
-  RegisterBalansResponseDto,
-  ['id', 'createdAt', 'updatedAt'] as const,
-) {
+export class RegisterBalansTransformBaseDto extends OmitType(RegisterBalansResponseDto, [
+  'id',
+  'createdAt',
+  'updatedAt',
+] as const) {
   @Expose({ name: 'uuid' })
   documentUuid: string;
 
@@ -28,18 +29,18 @@ export class RegisterBalansAccuredBonusTransformDto extends OmitType(
   bonus: string;
 }
 
-export class RegisterBalansSpentBonusTransformDto extends OmitType(
-  RegisterBalansTransformBaseDto,
-  ['accuredBonus', 'saving'] as const,
-) {
+export class RegisterBalansSpentBonusTransformDto extends OmitType(RegisterBalansTransformBaseDto, [
+  'accuredBonus',
+  'saving',
+] as const) {
   @Expose({ name: 'spentBonus' })
   bonus: string;
 }
 
-export class RegisterBalansSavingTransformDto extends OmitType(
-  RegisterBalansTransformBaseDto,
-  ['accuredBonus', 'spentBonus'] as const,
-) {
+export class RegisterBalansSavingTransformDto extends OmitType(RegisterBalansTransformBaseDto, [
+  'accuredBonus',
+  'spentBonus',
+] as const) {
   @Expose({ name: 'saving' })
   bonus: string;
 }

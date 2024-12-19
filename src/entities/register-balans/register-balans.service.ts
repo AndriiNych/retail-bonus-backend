@@ -5,12 +5,12 @@ import { plainToInstance } from 'class-transformer';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { DocumentType, RegisterBalansTypeMap } from './utils/types';
 import { RegisterBalansDto } from './dto/register-balans.dto';
-import { RegisterBalansResponseDto } from './dto/register-balans-response.dto';
+import { RegisterBalansResponseDto } from './dto/register-balans.response.dto';
 import { RegisterBalans } from './register-balans.entity';
 import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
 import { RegisterBalansUpdateDto } from './dto/register-balans.update.dto';
 import { configureSelectQueryBuilder } from '@src/utils/filters-query-dto/add-select-query_builder';
-import { PeriodDto } from '@src/utils/dto/period.dto';
+import { PeriodDto } from '@src/types/period.dto';
 import { get } from 'http';
 
 const TABLE_NAME = TABLE_NAMES.register_balans;

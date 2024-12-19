@@ -11,7 +11,7 @@ export class ActiveService {
     private readonly activeRepository: Repository<Active>,
   ) {}
 
-  public async getAllActive() {
+  public async getAllActive(): Promise<Active[]> {
     return await this.activeRepository.find();
   }
 }

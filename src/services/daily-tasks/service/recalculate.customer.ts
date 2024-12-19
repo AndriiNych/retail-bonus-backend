@@ -1,5 +1,5 @@
 import { CustomerService } from '@src/entities/customer/customer.service';
-import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans-response.dto';
+import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/register-balans.response.dto';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { RegisterSavingService } from '@src/entities/register-saving/register-saving.service';
 import { EntityManager } from 'typeorm';
@@ -12,12 +12,14 @@ import { FIELDS_LENGTH } from '@src/db/const-fields';
 import { MATH } from '@src/utils/math.decimal';
 import { RegisterBalansUpdateShortDto } from '@src/entities/register-balans/dto/register-balans.update.short.dto';
 import { Injectable } from '@nestjs/common';
+import { RegisterBalansResponseDigitalDto } from '@src/entities/register-balans/dto/register-balans.response.digital.dto';
+import { RegisterSavingResponseDigitalDto } from '@src/entities/register-saving/dto/register-saving.response.digital.dto';
 
 @Injectable()
 export class RecalculateCustomer {
   private fetchRegisterBalansList: RegisterBalansResponseDto[];
-  private rbList: any[];
-  private fetchRegisterSavingList: any[];
+  private rbList: RegisterBalansResponseDigitalDto[];
+  private fetchRegisterSavingList: RegisterSavingResponseDigitalDto[];
 
   private manager: EntityManager;
   private customerId: number;
