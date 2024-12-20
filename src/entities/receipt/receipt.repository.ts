@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Receipt } from './receipt.entity';
+import { MSG } from '@src/utils/get.message';
 
 @Injectable()
 export class ReceiptRepository extends Repository<Receipt> {
@@ -33,7 +34,7 @@ export class ReceiptRepository extends Repository<Receipt> {
     const receipt = await this.fetchReceiptByUuid(uuid);
 
     if (!receipt) {
-      throw new NotFoundException(`Record with uuid ${uuid} does not exist.`);
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ uuid }));
     }
 
     return receipt;
@@ -42,7 +43,7 @@ export class ReceiptRepository extends Repository<Receipt> {
   public async isExistReceipt(uuid: string): Promise<void> {
     const receipt = await this.fetchReceiptByUuid(uuid);
     if (receipt) {
-      throw new ConflictException(`Record with uuid: ${uuid} already exists.`);
+      throw new ConflictException(MSG.ERR.MESSAGES.conflictException({ uuid }));
     }
   }
 

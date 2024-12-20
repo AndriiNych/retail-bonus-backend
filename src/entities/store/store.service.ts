@@ -9,6 +9,7 @@ import { StoreResponseDto } from './dto/store.response.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { StoreParams } from './dto/store.params.dto';
+import { MSG } from '@src/utils/get.message';
 
 @Injectable()
 export class StoreService {
@@ -67,8 +68,7 @@ export class StoreService {
   private async validateExistenceByUuid(uuid: string): Promise<void> {
     const store = await this.fetchStoreByUuid(uuid);
     if (store) {
-      //TODO Add text error to messages in get.message.ts
-      throw new ConflictException(`Record with UUID ${uuid} already exists.`);
+      throw new ConflictException(MSG.ERR.MESSAGES.conflictException({ uuid }));
     }
   }
 

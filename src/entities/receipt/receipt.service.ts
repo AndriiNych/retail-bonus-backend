@@ -172,7 +172,7 @@ export class ReceiptService {
     const receipt = await this.fetchReceiptByUuid(uuid);
 
     if (!receipt) {
-      throw new NotFoundException(`Record with uuid ${uuid} does not exist.`);
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ uuid }));
     }
 
     return receipt;
@@ -191,7 +191,7 @@ export class ReceiptService {
   private async isExistReceipt(uuid: string): Promise<void> {
     const receipt = await this.fetchReceiptByUuid(uuid);
     if (receipt) {
-      throw new ConflictException(`Record with uuid: ${uuid} already exists.`);
+      throw new ConflictException( MSG.ERR.MESSAGES.conflictException({ uuid }));
     }
   }
 */

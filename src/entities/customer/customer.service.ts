@@ -14,6 +14,7 @@ import { CustomerQueryParamsDto } from './dto/customer.query.params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone.patch.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { CustomerUpdateBonusDto } from './dto/customer.update.bonus.dto';
+import { MSG } from '@src/utils/get.message';
 
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
@@ -34,36 +35,18 @@ export class CustomerService {
   }
 
   public async getCustomerById(id: number): Promise<CustomerDto> {
-    const customer = await this.customerRepository.findOneBy({ id });
-
-    if (!customer) {
-      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
-    }
-
-    return customer;
+    return await this.fetchCustomerByIdWithValidation(id);
   }
 
   public async getCustomerByIdWithTransaction(
     id: number,
     manager: EntityManager,
   ): Promise<CustomerResponseDto> {
-    const customer = await manager.findOneBy(Customer, { id });
-
-    if (!customer) {
-      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
-    }
-
-    return customer;
+    return await this.fetchCustomerByIdWithValidation(id, manager);
   }
 
   public async getCustomerResponseById(id: number): Promise<CustomerResponseDto> {
-    const customer = await this.customerRepository.findOneBy({ id });
-
-    if (!customer) {
-      throw new NotFoundException(`Customer with id: ${id} does not exist.`);
-    }
-
-    return customer;
+    return await this.fetchCustomerByIdWithValidation(id);
   }
 
   public async getCustomerByPhoneBase(
@@ -205,7 +188,7 @@ export class CustomerService {
   private async isExistCustomer(phone: string): Promise<void> {
     const customer = await this.fetchCustomerByPhone(phone);
     if (customer) {
-      throw new ConflictException(`Customer with phone: ${phone} already exists.`);
+      throw new ConflictException(MSG.ERR.MESSAGES.conflictException({ phone }));
     }
   }
 
@@ -216,7 +199,7 @@ export class CustomerService {
     const customer = await this.fetchCustomerByPhone(phone, manager);
 
     if (!customer) {
-      throw new NotFoundException(`Customer with phone: ${phone} does not exist.`);
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ phone }));
     }
 
     return customer;
@@ -230,6 +213,30 @@ export class CustomerService {
       return await manager.findOneBy(Customer, { phone });
     } else {
       return await this.customerRepository.findOneBy({ phone });
+    }
+  }
+
+  private async fetchCustomerByIdWithValidation(
+    id: number,
+    manager?: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    const customer = await this.fetchCustomerById(id, manager);
+
+    if (!customer) {
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ id }));
+    }
+
+    return customer;
+  }
+
+  private async fetchCustomerById(
+    id: number,
+    manager?: EntityManager,
+  ): Promise<CustomerResponseDto> {
+    if (manager) {
+      return await manager.findOneBy(Customer, { id });
+    } else {
+      return await this.customerRepository.findOneBy({ id });
     }
   }
 }

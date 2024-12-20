@@ -11,6 +11,7 @@ import { WorkerParamsDto } from './dto/worker.params.dto';
 import { WorkerUpdateDto } from './dto/worker.update.dto';
 import { WorkerQueryParamsDto } from './dto/worker.query.params.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
+import { MSG } from '@src/utils/get.message';
 
 const COLUMN_ID = 'id';
 const COLUMN_UUID = 'uuid';
@@ -96,7 +97,7 @@ export class WorkerService {
   private async validateExistenceByUuid(uuid: string): Promise<void> {
     const worker = await this.workerRepository.findOneBy({ uuid });
     if (worker) {
-      throw new ConflictException(`Record with uuid ${uuid} already exists`);
+      throw new ConflictException(MSG.ERR.MESSAGES.conflictException({ uuid }));
     }
   }
 }

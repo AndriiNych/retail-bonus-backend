@@ -1,6 +1,7 @@
 import { NotImplementedException } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
 import { SelectQueryBuilderBaseDto } from './dto/select-query-builder.base.dto';
+import { MSG } from '../get.message';
 
 export const CONDITIONAL_STATEMENTS_EQUAL = 'equal';
 export const CONDITIONAL_STATEMENTS = {
@@ -54,7 +55,7 @@ function addConditionToQueryBuilder<T>(
         }
 
         if (isNotDate(valueIn)) {
-          throw new NotImplementedException(`Not Implemented. ${keyIn} is error.`);
+          throw new NotImplementedException(MSG.ERR.MESSAGES.notImplementedException({ keyIn }));
         }
         sqb.andWhere(
           `${getColumnNameInEntity(sqb, key)} ${CONDITIONAL_STATEMENTS[keyIn]} :${keyIn}`,

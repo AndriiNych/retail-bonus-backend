@@ -12,6 +12,7 @@ import { StoreSettingsParamsDto } from './dto/store-settings.params.dto';
 import { StoreSettingsQueryParamsDto } from './dto/store-settings.query.params.dto';
 import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings.current.query.params.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
+import { MSG } from '@src/utils/get.message';
 
 const COLUMN_STORE_UUID = 'store_uuid';
 const COLUMN_START_DATE = 'start_date';
@@ -44,7 +45,7 @@ export class StoreSettingsService {
     const resultSave = await this.storeSettingsRepository.findOneBy({ id });
 
     if (!resultSave) {
-      throw new NotFoundException(`StoreSettings with Id: ${id} not found.`);
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ id }));
     }
 
     const result = resultSave ? [resultSave] : [];
