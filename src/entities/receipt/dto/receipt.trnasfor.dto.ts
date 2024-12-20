@@ -1,5 +1,5 @@
 import { OmitType } from '@nestjs/mapped-types';
-import { ReceiptResponseBaseDto } from './receipt-response-base.dto';
+import { ReceiptResponseBaseDto } from './receipt.response.base.dto';
 import { Expose } from 'class-transformer';
 
 export class TransformReceiptToRegisterBaseDto extends OmitType(ReceiptResponseBaseDto, [

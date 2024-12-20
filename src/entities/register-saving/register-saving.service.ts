@@ -3,7 +3,7 @@ import { RegisterSaving } from './register-saving.entity';
 import { EntityManager } from 'typeorm';
 import { RegisterSavingDto } from './dto/register-saving.dto';
 import { RegisterSavingResponseDto } from './dto/register-saving.response.dto';
-import { ReceiptResponseBaseDto } from '../receipt/dto/receipt-response-base.dto';
+import { ReceiptResponseBaseDto } from '../receipt/dto/receipt.response.base.dto';
 import { plainToInstance } from 'class-transformer';
 import { TransformToRegisterSavingBaseDto } from './dto/register-saving.transform.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';

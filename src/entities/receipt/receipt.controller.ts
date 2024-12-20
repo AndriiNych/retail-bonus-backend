@@ -2,9 +2,9 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { ReceiptService } from './receipt.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReceiptDto } from './dto/receipt.dto';
-import { ReceiptResponseDto } from './dto/receipt-response.dto';
-import { ReceiptUpdateDto } from './dto/receipt-update.dto';
-import { ReceiptParamsDto } from './dto/receipt-params.dto';
+import { ReceiptResponseDto } from './dto/receipt.response.dto';
+import { ReceiptUpdateDto } from './dto/receipt.update.dto';
+import { ReceiptParamsDto } from './dto/receipt.params.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 
 @ApiBearerAuth()

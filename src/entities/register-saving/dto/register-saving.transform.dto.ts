@@ -1,5 +1,5 @@
 import { PickType } from '@nestjs/mapped-types';
-import { TransformReceiptToRegisterBaseDto } from '@src/entities/receipt/dto/receipt-trnasfor.dto';
+import { TransformReceiptToRegisterBaseDto } from '@src/entities/receipt/dto/receipt.trnasfor.dto';
 import { Expose } from 'class-transformer';
 
 export class TransformToRegisterSavingBaseDto extends PickType(TransformReceiptToRegisterBaseDto, [
