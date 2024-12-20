@@ -28,8 +28,6 @@ export class ReceiptRepository extends Repository<Receipt> {
     return result;
   }
 
-  //TODO correct all scopes for methods
-
   public async fetchReceiptByUuidWithValidation(uuid: string): Promise<Receipt> {
     const receipt = await this.fetchReceiptByUuid(uuid);
 
@@ -40,7 +38,7 @@ export class ReceiptRepository extends Repository<Receipt> {
     return receipt;
   }
 
-  public async isExistReceipt(uuid: string): Promise<void> {
+  private async isExistReceipt(uuid: string): Promise<void> {
     const receipt = await this.fetchReceiptByUuid(uuid);
     if (receipt) {
       throw new ConflictException(MSG.ERR.MESSAGES.conflictException({ uuid }));

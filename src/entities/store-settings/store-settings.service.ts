@@ -42,15 +42,9 @@ export class StoreSettingsService {
   ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
     const { id } = storeSettingsParamsDto;
 
-    const resultSave = await this.storeSettingsRepository.findOneBy({ id });
+    const currentStoreSetting = await this.fentchStoreSettingById(id);
 
-    if (!resultSave) {
-      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ id }));
-    }
-
-    const result = resultSave ? [resultSave] : [];
-
-    return responseWrapper(result, StoreSettingsResponseDto);
+    return responseWrapper([currentStoreSetting], StoreSettingsResponseDto);
   }
 
   public async getStoreSettingsCurrentByUuid(
@@ -78,16 +72,11 @@ export class StoreSettingsService {
   ): Promise<ResponseWrapperDto<StoreSettingsDto>> {
     const { id } = storeSettingsParamsDto;
 
-    const storeSettings = await this.storeSettingsRepository.findOneBy({ id });
-    //TODO make this implementation such as delete's function in receiptService
-    const result = [];
+    const currentStoreSetting = await this.fentchStoreSettingById(id);
 
-    if (storeSettings) {
-      await this.storeSettingsRepository.delete({ id });
-      result.push(storeSettings);
-    }
+    await this.storeSettingsRepository.delete({ id });
 
-    return responseWrapper(result, StoreSettingsResponseDto);
+    return responseWrapper([currentStoreSetting], StoreSettingsResponseDto);
   }
 
   public async updateStoreSettingsById(
@@ -96,15 +85,16 @@ export class StoreSettingsService {
   ): Promise<ResponseWrapperDto<StoreSettingsResponseDto>> {
     const { id } = storeSettingsParamsDto;
 
-    const resultUpdate = await this.storeSettingsRepository.update({ id }, storeSettingsUpdateDto);
+    const currentStoreSetting = await this.fentchStoreSettingById(id);
 
-    const result = [];
+    const newStoreSetting = this.storeSettingsRepository.merge(
+      currentStoreSetting,
+      storeSettingsUpdateDto,
+    );
 
-    if (resultUpdate.affected === 1) {
-      result.push(await this.storeSettingsRepository.findOneBy({ id }));
-    }
+    const updatedStoreSetting = await this.storeSettingsRepository.save(newStoreSetting);
 
-    return responseWrapper(result, StoreSettingsResponseDto);
+    return responseWrapper([updatedStoreSetting], StoreSettingsResponseDto);
   }
 
   private async getStoreSettingsCurrent(queryParams): Promise<StoreSettings[]> {
@@ -170,5 +160,15 @@ export class StoreSettingsService {
     }
 
     return query;
+  }
+
+  private async fentchStoreSettingById(id: number): Promise<StoreSettingsResponseDto> {
+    const resultSave = await this.storeSettingsRepository.findOneBy({ id });
+
+    if (!resultSave) {
+      throw new NotFoundException(MSG.ERR.MESSAGES.notFoundException({ id }));
+    }
+
+    return resultSave;
   }
 }

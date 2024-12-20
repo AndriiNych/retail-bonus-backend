@@ -1,6 +1,5 @@
 import { plainToInstance } from 'class-transformer';
 
-//TODO clear comment
 export function wrapperResponseEntity<T>(
   data: any,
   dtoClass: new () => T,

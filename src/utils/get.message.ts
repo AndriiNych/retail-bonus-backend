@@ -1,4 +1,5 @@
-//TODO add error codes and change the function of creating error text
+import { FIELDS_LENGTH } from '@src/db/const-fields';
+
 type ConditionString = Record<string, string | number | Date>;
 
 export const MSG = {
@@ -8,7 +9,10 @@ export const MSG = {
         return `${fieldName} must be an array`;
       },
       decimal: (fieldName: string): string => {
-        return `${fieldName} must be a decimal number with up to 2 decimal places`;
+        return `${fieldName} must be a decimal number with up to  ${FIELDS_LENGTH.DECIMAL.SCALE} decimal places`;
+      },
+      percent: (fieldName: string): string => {
+        return `${fieldName} must be a decimal number with up to ${FIELDS_LENGTH.PERCENT.SCALE} decimal places`;
       },
       email: (fieldName: string): string => {
         return `${fieldName} must be a valid email address`;
