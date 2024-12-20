@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { WorkerService } from './worker.service';
 import { WorkerDto } from './dto/worker.dto';
-import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
-import { WorkerParamsDto } from './dto/worker-params.dto';
-import { WorkerUpdateDto } from './dto/worker-update.dto';
+import { WorkerQueryParamsDto } from './dto/worker.query.params.dto';
+import { WorkerParamsDto } from './dto/worker.params.dto';
+import { WorkerUpdateDto } from './dto/worker.update.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { TABLE_NAMES } from '@src/db/const-tables';
 

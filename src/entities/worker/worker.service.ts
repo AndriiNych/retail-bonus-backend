@@ -4,12 +4,12 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { Worker } from './worker.entity';
 import { WorkerDto } from './dto/worker.dto';
-import { WorkerResponseDto } from './dto/worker-response.dto';
+import { WorkerResponseDto } from './dto/worker.response.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
-import { WorkerParamsDto } from './dto/worker-params.dto';
-import { WorkerUpdateDto } from './dto/worker-update.dto';
-import { WorkerQueryParamsDto } from './dto/worker-query-params.dto';
+import { WorkerParamsDto } from './dto/worker.params.dto';
+import { WorkerUpdateDto } from './dto/worker.update.dto';
+import { WorkerQueryParamsDto } from './dto/worker.query.params.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_ID = 'id';
