@@ -14,6 +14,7 @@ import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { CustomerUpdateBonusDto } from './dto/customer.update.bonus.dto';
+import { plainToInstance } from 'class-transformer';
 
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
@@ -121,7 +122,6 @@ export class CustomerService {
     customerUpdateDto: CustomerUpdateDto,
     manager: EntityManager,
   ): Promise<Customer> {
-    //FIXME check whether the transaction is rollback if an error occurs, maybe need to use the manager
     const currentCustomer = await this.fetchCustomerByPhoneWithValidation(
       customerParamsDto.phone,
       manager,
@@ -136,38 +136,36 @@ export class CustomerService {
     customerParamsDto: CustomerParamsDto,
     customerUpdateDto: CustomerUpdateDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
-    const { phone } = customerParamsDto;
-    const resultUpdate = await this.customerRepository.update({ phone }, customerUpdateDto);
+    const updatedCustomer = await this.saveCustomerByPhone(customerParamsDto, customerUpdateDto);
 
-    const result = [];
-
-    //TODO - if record not found, then create error "Not found"
-    if (resultUpdate.affected === 1) {
-      result.push(await this.fetchCustomerByPhone(phone));
-    }
-
-    return responseWrapper(result, CustomerResponseDto);
+    return responseWrapper([updatedCustomer], CustomerResponseDto);
   }
 
   public async changePhoneNumber(
     customerParamsDto: CustomerParamsDto,
     customerPhonePatchDto: CustomerPhonePatchDto,
   ): Promise<ResponseWrapperDto<CustomerResponseDto>> {
-    const { phone } = customerParamsDto;
-    await this.fetchCustomerByPhoneWithValidation(phone);
-
     const { phone: newPhone } = customerPhonePatchDto;
     await this.isExistCustomer(newPhone);
 
-    const resultUpdate = await this.customerRepository.update({ phone }, customerPhonePatchDto);
+    const updatedCustomer = await this.saveCustomerByPhone(
+      customerParamsDto,
+      customerPhonePatchDto,
+    );
 
-    const result = [];
+    return responseWrapper([updatedCustomer], CustomerResponseDto);
+  }
 
-    if (resultUpdate.affected === 1) {
-      result.push(await this.fetchCustomerByPhone(newPhone));
-    }
+  private async saveCustomerByPhone(
+    customerParamsDto: CustomerParamsDto,
+    customerUpdateDto: CustomerUpdateDto | CustomerPhonePatchDto,
+  ): Promise<CustomerResponseDto> {
+    const { phone } = customerParamsDto;
+    const currentCustomer = await this.fetchCustomerByPhoneWithValidation(phone);
 
-    return responseWrapper(result, CustomerResponseDto);
+    const newCustomer = this.customerRepository.merge(currentCustomer, customerUpdateDto);
+
+    return await this.customerRepository.save(newCustomer);
   }
 
   private getQueryByCriterial(
