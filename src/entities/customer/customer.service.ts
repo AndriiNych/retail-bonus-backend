@@ -5,13 +5,13 @@ import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { Customer } from './customer.entity';
 import { CustomersDto } from './dto/customers.dto';
 import { CustomerDto } from './dto/customer.dto';
-import { CustomerResponseDto } from './dto/customer-response.dto';
+import { CustomerResponseDto } from './dto/customer.response.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
-import { CustomerUpdateDto } from './dto/customer-update.dto';
-import { CustomerParamsDto } from './dto/customer-params.dto';
-import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
-import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
+import { CustomerUpdateDto } from './dto/customer.update.dto';
+import { CustomerParamsDto } from './dto/customer.params.dto';
+import { CustomerQueryParamsDto } from './dto/customer.query.params.dto';
+import { CustomerPhonePatchDto } from './dto/customer-phone.patch.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { CustomerUpdateBonusDto } from './dto/customer.update.bonus.dto';
 

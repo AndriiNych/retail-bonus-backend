@@ -3,10 +3,10 @@ import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/c
 import { CustomerService } from './customer.service';
 import { CustomersDto } from './dto/customers.dto';
 import { CustomerDto } from './dto/customer.dto';
-import { CustomerUpdateDto } from './dto/customer-update.dto';
-import { CustomerParamsDto } from './dto/customer-params.dto';
-import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
-import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
+import { CustomerUpdateDto } from './dto/customer.update.dto';
+import { CustomerParamsDto } from './dto/customer.params.dto';
+import { CustomerQueryParamsDto } from './dto/customer.query.params.dto';
+import { CustomerPhonePatchDto } from './dto/customer-phone.patch.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TABLE_NAMES } from '@src/db/const-tables';
 

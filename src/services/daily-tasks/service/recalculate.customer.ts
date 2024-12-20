@@ -3,7 +3,7 @@ import { RegisterBalansResponseDto } from '@src/entities/register-balans/dto/reg
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { RegisterSavingService } from '@src/entities/register-saving/register-saving.service';
 import { EntityManager } from 'typeorm';
-import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
+import { CustomerResponseDto } from '@src/entities/customer/dto/customer.response.dto';
 import { SelectQueryBuilderBaseDto } from '@src/utils/filters-query-dto/dto/select-query-builder.base.dto';
 import { plainToInstance } from 'class-transformer';
 import { DATE } from '@src/utils/date';

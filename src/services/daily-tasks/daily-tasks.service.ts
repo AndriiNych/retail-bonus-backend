@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RegisterBalansService } from '@src/entities/register-balans/register-balans.service';
 import { DataSource } from 'typeorm';
 import { DailyTasksQueryBaseDto } from './dto/daily-tasks.query.base.dto';
-import { CustomerResponseDto } from '@src/entities/customer/dto/customer-response.dto';
+import { CustomerResponseDto } from '@src/entities/customer/dto/customer.response.dto';
 import { CustomerService } from '@src/entities/customer/customer.service';
 import { wrapperResponseEntity } from '@src/utils/response-wrapper/wrapper-response-entity';
 import { TABLE_NAMES } from '@src/db/const-tables';
