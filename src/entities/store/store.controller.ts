@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 
 import { StoreService } from './store.service';
 import { StoreDto } from './dto/store.dto';
-import { StoreUpdateDto } from './dto/store-update.dto';
-import { StoreParams } from './dto/store-params.dto';
+import { StoreUpdateDto } from './dto/store.update.dto';
+import { StoreParams } from './dto/store.params.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { TABLE_NAMES } from '@src/db/const-tables';
 

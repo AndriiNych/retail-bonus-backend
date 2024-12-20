@@ -4,11 +4,11 @@ import { Repository } from 'typeorm';
 
 import { Store } from './store.entity';
 import { StoreDto } from './dto/store.dto';
-import { StoreUpdateDto } from './dto/store-update.dto';
-import { StoreResponseDto } from './dto/store-response.dto';
+import { StoreUpdateDto } from './dto/store.update.dto';
+import { StoreResponseDto } from './dto/store.response.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
-import { StoreParams } from './dto/store-params.dto';
+import { StoreParams } from './dto/store.params.dto';
 
 @Injectable()
 export class StoreService {
@@ -35,9 +35,7 @@ export class StoreService {
     return responseWrapper(result, StoreResponseDto);
   }
 
-  public async createStore(
-    storeDto: StoreDto,
-  ): Promise<ResponseWrapperDto<StoreResponseDto>> {
+  public async createStore(storeDto: StoreDto): Promise<ResponseWrapperDto<StoreResponseDto>> {
     await this.validateExistenceByUuid(storeDto.uuid);
 
     const newStore = this.storeRepository.create(storeDto);
@@ -55,10 +53,7 @@ export class StoreService {
   ): Promise<ResponseWrapperDto<StoreResponseDto>> {
     const { uuid } = storeParams;
 
-    const resultUpdate = await this.storeRepository.update(
-      { uuid },
-      storeUpdateDto,
-    );
+    const resultUpdate = await this.storeRepository.update({ uuid }, storeUpdateDto);
 
     const result = [];
 
