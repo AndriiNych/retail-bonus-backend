@@ -4,13 +4,13 @@ import { Repository } from 'typeorm';
 
 import { StoreSettings } from './store-settings.entity';
 import { StoreSettingsDto } from './dto/store-settings.dto';
-import { StoreSettingsUpdateDto } from './dto/store-settings-update.dto';
+import { StoreSettingsUpdateDto } from './dto/store-settings.update.dto';
 import { ResponseWrapperDto } from '@src/utils/response-wrapper/dto/response-wrapper.dto';
 import { responseWrapper } from '@src/utils/response-wrapper/response-wrapper';
-import { StoreSettingsResponseDto } from './dto/store-settings-response.dto';
-import { StoreSettingsParamsDto } from './dto/store-settings-params.dto';
-import { StoreSettingsQueryParamsDto } from './dto/store-settings-query-params.dto';
-import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings-current-query-params.dto';
+import { StoreSettingsResponseDto } from './dto/store-settings.response.dto';
+import { StoreSettingsParamsDto } from './dto/store-settings.params.dto';
+import { StoreSettingsQueryParamsDto } from './dto/store-settings.query.params.dto';
+import { StoreSettingsCurrentQueryParamsDto } from './dto/store-settings.current.query.params.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 
 const COLUMN_STORE_UUID = 'store_uuid';
