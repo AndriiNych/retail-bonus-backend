@@ -14,7 +14,6 @@ import { CustomerQueryParamsDto } from './dto/customer-query-params.dto';
 import { CustomerPhonePatchDto } from './dto/customer-phone-patch.dto';
 import { TABLE_NAMES } from '@src/db/const-tables';
 import { CustomerUpdateBonusDto } from './dto/customer.update.bonus.dto';
-import { plainToInstance } from 'class-transformer';
 
 const COLUMN_UPDATED_AT = 'updated_at';
 @Injectable()
