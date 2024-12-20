@@ -1,28 +1,28 @@
 import { plainToInstance } from 'class-transformer';
 import { FilterBaseDateDto, FilterBaseDto } from './dto/filters.dto';
+import { CONDITIONAL_STATEMENTS_EQUAL, CONDITIONAL_STATEMENTS } from './add-select-query_builder';
 
 export function filterTransformObjectDto(obj): FilterBaseDto {
   const result = Object.entries(obj).reduce((acc, [key, value]) => {
-    if (['gte', 'lte', 'equal'].includes(key)) {
+    if (CONDITIONAL_STATEMENTS.hasOwnProperty(key)) {
       acc[key] = value;
       return acc;
     }
 
-    acc['equal'] = key;
+    acc[CONDITIONAL_STATEMENTS_EQUAL] = key;
     return acc;
   }, {});
   return plainToInstance(FilterBaseDto, result);
 }
 
-//TODO magic-worlds ['gte', 'lte', 'equal', 'ne', 'lt', 'gt', 'in', 'like']
 export function filterTransformDateDto(obj): FilterBaseDateDto {
   const result = Object.entries(obj).reduce((acc, [key, value]) => {
-    if (['gte', 'lte', 'equal', 'ne', 'lt', 'gt', 'like', 'in'].includes(key)) {
+    if (CONDITIONAL_STATEMENTS.hasOwnProperty(key)) {
       acc[key] = value;
       return acc;
     }
 
-    acc['equal'] = key;
+    acc[CONDITIONAL_STATEMENTS_EQUAL] = key;
     return acc;
   }, {});
   return plainToInstance(FilterBaseDateDto, result);

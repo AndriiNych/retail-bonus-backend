@@ -2,12 +2,16 @@ import { NotImplementedException } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
 import { SelectQueryBuilderBaseDto } from './dto/select-query-builder.base.dto';
 
-const CONDITIONAL_STATEMENTS = {
+export const CONDITIONAL_STATEMENTS_EQUAL = 'equal';
+export const CONDITIONAL_STATEMENTS = {
+  [CONDITIONAL_STATEMENTS_EQUAL]: '=',
   ne: '!=',
   gt: '>',
   lt: '<',
   gte: '>=',
   lte: '<=',
+  like: 'like',
+  in: 'in',
 };
 
 export function configureSelectQueryBuilder<T>(
