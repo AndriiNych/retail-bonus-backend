@@ -1,4 +1,4 @@
-import { PickType } from '@nestjs/mapped-types';
+import { PickType } from '@nestjs/swagger';
 import { TransformReceiptToRegisterBaseDto } from '@src/entities/receipt/dto/receipt.trnasfor.dto';
 import { Expose } from 'class-transformer';
 

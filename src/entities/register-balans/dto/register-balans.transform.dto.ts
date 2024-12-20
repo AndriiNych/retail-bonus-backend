@@ -1,4 +1,4 @@
-import { OmitType } from '@nestjs/mapped-types';
+import { OmitType } from '@nestjs/swagger';
 import { RegisterBalansResponseDto } from './register-balans.response.dto';
 import { Expose } from 'class-transformer';
 

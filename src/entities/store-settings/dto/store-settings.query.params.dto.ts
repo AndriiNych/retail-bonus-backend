@@ -1,16 +1,13 @@
-import { PartialType, PickType } from '@nestjs/mapped-types';
+import { PickType, PartialType } from '@nestjs/swagger';
 import { StoreSettingsDto } from './store-settings.dto';
 import { IsDate, IsNotEmpty, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class PrepareStoreSettingsQueryParamsDto extends PickType(
-  StoreSettingsDto,
-  ['storeUuid'] as const,
-) {}
+export class PrepareStoreSettingsQueryParamsDto extends PickType(StoreSettingsDto, [
+  'storeUuid',
+] as const) {}
 
-export class StoreSettingsQueryParamsDto extends PartialType(
-  PrepareStoreSettingsQueryParamsDto,
-) {
+export class StoreSettingsQueryParamsDto extends PartialType(PrepareStoreSettingsQueryParamsDto) {
   @IsOptional()
   @IsNotEmpty()
   @Type(() => Date)

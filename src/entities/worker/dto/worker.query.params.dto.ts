@@ -1,4 +1,4 @@
-import { PartialType, PickType } from '@nestjs/mapped-types';
+import { PickType, PartialType } from '@nestjs/swagger';
 import { WorkerDto } from './worker.dto';
 import { IsInt, Min } from 'class-validator';
 
@@ -12,6 +12,4 @@ export class PrepareWorkerQueryParamsDto extends PickType(WorkerDto, [
   id: number;
 }
 
-export class WorkerQueryParamsDto extends PartialType(
-  PrepareWorkerQueryParamsDto,
-) {}
+export class WorkerQueryParamsDto extends PartialType(PrepareWorkerQueryParamsDto) {}
