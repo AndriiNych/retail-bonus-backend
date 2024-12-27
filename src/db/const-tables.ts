@@ -7,4 +7,5 @@ export const TABLE_NAMES = {
   store: 'stores',
   store_settings: 'store_settings',
   worker: 'workers',
+  promo: 'promo',
 };

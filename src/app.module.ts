@@ -14,6 +14,7 @@ import { RegisterBalansModule } from './entities/register-balans/register-balans
 import { RegisterSavingModule } from './entities/register-saving/register-saving.module';
 import { DailyTasksModule } from './services/daily-tasks/daily-tasks.module';
 import { SettingModule } from './services/setting/setting.module';
+import { PromoModule } from './entities/promo/promo.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SettingModule } from './services/setting/setting.module';
     WorkerModule,
     DailyTasksModule,
     SettingModule,
+    PromoModule,
   ],
 })
 export class AppModule {}

@@ -1,7 +1,8 @@
 import { FIELDS } from '@src/db/const-fields';
+import { TABLE_NAMES } from '@src/db/const-tables';
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
-@Entity('receipts')
+@Entity(TABLE_NAMES.receipt)
 export class Receipt {
   @PrimaryGeneratedColumn()
   id: number;
