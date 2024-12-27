@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Promo } from './promo.entity';
 import { PromoDto } from './dto/promo.dto';
 import { PromoResponseDto } from './dto/promo.response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class PromoService {
@@ -15,6 +16,8 @@ export class PromoService {
   public async cretatePromo(promoDto: PromoDto): Promise<PromoResponseDto> {
     const newPromo = this.promoRepository.create(promoDto);
 
-    return await this.promoRepository.save(newPromo);
+    const savedPromo = await this.promoRepository.save(newPromo);
+
+    return plainToInstance(PromoResponseDto, savedPromo);
   }
 }

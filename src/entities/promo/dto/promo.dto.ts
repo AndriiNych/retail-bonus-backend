@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class PromoDto {
   @IsNotEmpty()
@@ -10,6 +10,7 @@ export class PromoDto {
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsString()
   country: string;
 
@@ -17,6 +18,7 @@ export class PromoDto {
   @IsString()
   phoneNumber: string;
 
+  @IsOptional()
   @IsString()
   notes: string;
 }

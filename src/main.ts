@@ -39,7 +39,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory);
 
-  app.useGlobalGuards(new ApiKeyAuthGuard(app.get(ConfigService)));
+  app.useGlobalGuards(new ApiKeyAuthGuard(app.get(ConfigService), app.get(Reflector)));
 
   await app.listen(process.env.PORT);
 }

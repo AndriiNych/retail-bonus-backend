@@ -1,14 +1,24 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { MSG } from '@src/utils/get.message';
 
 @Injectable()
 export class ApiKeyAuthGuard implements CanActivate {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly reflector: Reflector,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest();
     const apiKeyHeader = request.headers['authorization'];
+    console.log(request);
 
     if (!apiKeyHeader) {
       throw new UnauthorizedException(MSG.ERR.MESSAGES.unauthorizedException.apiKeyIsMissing);
