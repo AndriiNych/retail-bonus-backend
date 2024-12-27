@@ -18,7 +18,6 @@ export class ApiKeyAuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const apiKeyHeader = request.headers['authorization'];
-    console.log(request);
 
     if (!apiKeyHeader) {
       throw new UnauthorizedException(MSG.ERR.MESSAGES.unauthorizedException.apiKeyIsMissing);
